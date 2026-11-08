@@ -1,0 +1,14 @@
+#!/bin/bash
+# Show Android (Waydroid) for the head unit's app slot. Starts the Android
+# session first if needed (first start takes ~10 s), then opens its full UI.
+# hu-daemon recognises the window (app_id "Waydroid") and places it.
+if ! waydroid status 2>/dev/null | grep -q "Session:[[:space:]]*RUNNING"; then
+  waydroid session start > /tmp/waydroid-session.log 2>&1 &
+  for _ in $(seq 60); do
+    waydroid status 2>/dev/null | grep -q "Session:[[:space:]]*RUNNING" && break
+    sleep 0.5
+  done
+fi
+# No GPS in the Surface: give Android a location (re-created after every start).
+( sleep 15; hu-gps set > /tmp/hu-gps.log 2>&1 ) &
+exec waydroid show-full-ui

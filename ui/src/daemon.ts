@@ -33,6 +33,7 @@ export const DEFAULT_STATE: DaemonState = {
     gmail: { title: "Gmail", running: false },
     calendar: { title: "Calendar", running: false },
     chess: { title: "Chess", running: false },
+    android: { title: "Android", running: false },
     browser: { title: "Chrome", running: false },
   },
   layout: "home",

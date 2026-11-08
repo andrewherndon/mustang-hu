@@ -41,6 +41,10 @@ export const APP_LOOKS: Record<string, AppLook> = {
     icon: (s) => g(s, <><path d="M8 20h9M9 20c0-3 1-5 1.5-7L8 12l1-4 4-3.5 1.5 1.5c2 1.5 3 4 3 7.5V20" /><circle cx="12.5" cy="8.5" r="0.6" fill="currentColor" /></>),
     tint: ["rgba(129,182,76,0.14)", "#a3d977"],
   },
+  android: {
+    icon: (s) => g(s, <><path d="M6 10.5h12V18a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 18z" /><path d="M6 9.5a6 6 0 0 1 12 0" /><path d="m8 4 1.3 2M16 4l-1.3 2" /><path d="M9.5 7.5h.01M14.5 7.5h.01" /></>),
+    tint: ["rgba(61,220,132,0.14)", "#3ddc84"],
+  },
   browser: {
     icon: (s) => g(s, <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9s1-6.5 3.5-9z" /></>),
     tint: ["rgba(255,255,255,0.08)", "#e8eaed"],

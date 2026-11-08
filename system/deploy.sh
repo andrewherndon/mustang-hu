@@ -21,7 +21,7 @@ D=/tmp/hu-deploy
 sudo install -d /opt/headunit
 sudo rsync -a --delete $D/daemon/ /opt/headunit/daemon/
 sudo rsync -a --delete $D/ui/ /opt/headunit/ui/
-sudo install -m755 $D/system/bin/* /usr/local/bin/
+sudo find $D/system/bin -maxdepth 1 -type f -exec install -m755 {} /usr/local/bin/ \;
 sudo rm -f /usr/local/bin/aa-video-watch            # replaced by hu-daemon
 for unit in $D/system/systemd/*.service; do
   sudo install -m644 "$unit" /etc/systemd/system/

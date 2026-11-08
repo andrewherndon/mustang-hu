@@ -52,6 +52,7 @@ import asyncio
 import json
 import logging
 import os
+import time
 
 import websockets
 
@@ -96,6 +97,12 @@ APPS = {
     "gmail": web_app("Gmail", "https://mail.google.com/", "google"),
     "calendar": web_app("Calendar", "https://calendar.google.com/", "google"),
     "chess": web_app("Chess", "https://www.chess.com/play", "chess"),
+    # Android apps (Google Maps, ...) in Waydroid, GPU-accelerated; one window for all of Android.
+    "android": {
+        "title": "Android",
+        "match": lambda props, app_id, title: app_id == "Waydroid",
+        "launch": "hu-android",
+    },
     # A normal browser window (tabs, address bar); plain Chromium windows have app_id "chromium".
     "browser": {
         "title": "Chrome",
@@ -114,6 +121,10 @@ class Daemon:
         self.clients = set()
         self.launching = set()   # app ids launched but whose window has not appeared yet
         self.keyboard = False
+        # The app most recently asked for and when: some apps (Waydroid) show a
+        # splash window, close it and open the real one; that window should
+        # still be shown even though the layout fell back to "home" meanwhile.
+        self.wanted = (None, 0.0)
         self.volume = {"level": 0.0, "muted": False}
         self.brightness = 1.0
         self.max_brightness = int(open(f"/sys/class/backlight/{BACKLIGHT}/max_brightness").read())
@@ -197,6 +208,7 @@ class Daemon:
                 self.launching.add(layout)
                 await self.sway(f"exec {launch}")
         self.layout = layout
+        self.wanted = (layout, time.monotonic())
         self.keyboard = False                     # the keyboard belongs to one app session
         log.info("layout -> %s", layout)
         await self.broadcast()
@@ -229,8 +241,11 @@ class Daemon:
             log.info("%s window appeared (%s)", app, con["id"])
             self.windows[app] = con["id"]
             self.launching.discard(app)
+            wanted_app, wanted_at = self.wanted
             if app == "aa" and AUTO_OPEN_AA:
                 await self.set_layout("aa")
+            elif app == wanted_app and time.monotonic() - wanted_at < 30 and self.layout == "home":
+                await self.set_layout(app)
             else:
                 await self.broadcast()
                 asyncio.create_task(self.apply_layout())
@@ -238,7 +253,9 @@ class Daemon:
             log.info("%s window closed", app)
             del self.windows[app]
             if self.layout == app:
+                wanted = self.wanted
                 await self.set_layout("home")
+                self.wanted = wanted                  # a replacement window may follow
             else:
                 await self.broadcast()
 
