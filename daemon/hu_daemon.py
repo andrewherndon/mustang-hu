@@ -57,17 +57,33 @@ SLOT_RECT = {"x": 0, "y": 0, "width": 2880, "height": 1620}
 KEYBOARD_HEIGHT = 760
 AUTO_OPEN_AA = True   # switch to Android Auto when a phone connects
 
+def web_app(title, url, profile, host=None):
+    """A Chromium --app window; its app_id is "chrome-<host>__-<profile dir>"."""
+    host = host or url.split("/")[2]
+    return {
+        "title": title,
+        "match": lambda props, app_id, t, host=host: (app_id or "").startswith(f"chrome-{host}__"),
+        "launch": f"hu-webapp {profile} {url}",
+    }
+
+
+# Order here is the order the shell shows them in.
 APPS = {
     "aa": {
         "title": "Android Auto",
         "match": lambda props, app_id, title: props.get("class") == "autoapp" and title == "openauto-video",
         "launch": None,
     },
-    "stremio": {
-        "title": "Stremio",
-        # Chromium --app windows get app_id "chrome-<host>__-<profile>".
-        "match": lambda props, app_id, title: (app_id or "").startswith("chrome-web.stremio.com"),
-        "launch": "hu-webapp stremio https://web.stremio.com/",
+    "stremio": web_app("Stremio", "https://web.stremio.com/", "stremio"),
+    "youtube": web_app("YouTube", "https://www.youtube.com/", "google"),
+    "gmail": web_app("Gmail", "https://mail.google.com/", "google"),
+    "calendar": web_app("Calendar", "https://calendar.google.com/", "google"),
+    "chess": web_app("Chess", "https://www.chess.com/play", "chess"),
+    # A normal browser window (tabs, address bar); plain Chromium windows have app_id "chromium".
+    "browser": {
+        "title": "Chrome",
+        "match": lambda props, app_id, title: app_id == "chromium",
+        "launch": "hu-webapp browser --browser https://www.google.com/",
     },
 }
 

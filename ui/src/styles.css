@@ -81,7 +81,6 @@ button.card:not(:disabled):active { transform: scale(0.98); background: var(--su
 .card-title { font-size: 26px; font-weight: 600; }
 .card-sub { margin-top: 6px; font-size: 18px; color: var(--text-dim); }
 
-.card-stremio .card-icon { background: rgba(128, 90, 255, 0.14); color: #a58bff; }
 .card-aa[data-connected="true"] .card-icon { background: rgba(79, 140, 255, 0.14); color: var(--accent); }
 .card-aa .status-dot {
   position: absolute; top: 28px; right: 28px; width: 12px; height: 12px; border-radius: 50%;
@@ -144,3 +143,20 @@ button.card:not(:disabled):active { transform: scale(0.98); background: var(--su
 .kb-key[data-on="true"] { background: var(--text); color: var(--bg); }
 .kb-key[data-lock="true"] { box-shadow: inset 0 -4px 0 var(--accent); }
 .kb-key:disabled { opacity: 0.3; }
+
+/* ---------- app launcher grid (home) ---------- */
+.app-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.app-tile {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; height: 168px; border-radius: var(--radius);
+  background: var(--surface); border: 1px solid var(--line);
+  transition: transform 140ms var(--ease), background 140ms var(--ease);
+}
+.app-tile:active { transform: scale(0.96); background: var(--surface-2); }
+.app-tile-icon { width: 76px; height: 76px; border-radius: 22px; display: grid; place-items: center; }
+.app-tile-title { font-size: 19px; font-weight: 550; }
+.app-tile[data-running="true"]::after {
+  content: ""; position: absolute; top: 18px; right: 18px; width: 9px; height: 9px;
+  border-radius: 50%; background: var(--text-dim);
+}
+.dock-sep { width: 1px; height: 48px; background: var(--line); margin: 0 8px; }

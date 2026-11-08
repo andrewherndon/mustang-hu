@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MOCK, useDaemon, type AppId } from "./daemon";
+import { MOCK, useDaemon } from "./daemon";
 import { Home } from "./components/Home";
 import { Dock } from "./components/Dock";
 import { DevBar } from "./components/DevBar";
@@ -57,14 +57,14 @@ export function App() {
           <Home
             hidden={slotVisible}
             aaConnected={state.aa.connected}
-            stremioRunning={state.apps.stremio.running}
+            apps={state.apps}
             onOpen={setLayout}
           />
           {/* On the Surface the app window covers this slot; in a desktop browser it is a placeholder. */}
           <div className="aa-slot" aria-hidden={!slotVisible}
                style={{ left: aa.x, top: aa.y, width: aa.width, height: kbOpen ? stageH - kbHeight : aa.height }}>
             {MOCK && slotVisible && (
-              <span>{state.apps[state.layout as AppId].title} renders here{kbOpen && <> · typed: “{mockTyped}”</>}</span>
+              <span>{state.apps[state.layout]?.title} renders here{kbOpen && <> · typed: “{mockTyped}”</>}</span>
             )}
           </div>
         </section>
@@ -76,6 +76,7 @@ export function App() {
             height={dockHeight}
             layout={state.layout}
             aaConnected={state.aa.connected}
+            apps={state.apps}
             online={online}
             keyboardAvailable={state.keyboard.available}
             onOpen={setLayout}

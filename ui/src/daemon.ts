@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { KeyPress } from "./components/Keyboard";
 
 /** Mirrors the daemon protocol (daemon/hu_daemon.py). Rects are physical pixels. */
-export type AppId = "aa" | "stremio";
+/** App ids come from the daemon's APPS registry ("aa", "stremio", "youtube", ...). */
+export type AppId = string;
 /** "home", or the app shown in the slot (the 16:9 area above the dock). */
 export type Layout = "home" | AppId;
 export interface Rect { x: number; y: number; width: number; height: number }
@@ -25,6 +26,11 @@ export const DEFAULT_STATE: DaemonState = {
   apps: {
     aa: { title: "Android Auto", running: false },
     stremio: { title: "Stremio", running: false },
+    youtube: { title: "YouTube", running: false },
+    gmail: { title: "Gmail", running: false },
+    calendar: { title: "Calendar", running: false },
+    chess: { title: "Chess", running: false },
+    browser: { title: "Chrome", running: false },
   },
   layout: "home",
   aaRect: { x: 0, y: 0, width: 2880, height: 1620 },

@@ -1,17 +1,19 @@
 import { formatDate, formatMeridiem, formatTime, useClock } from "../useClock";
-import type { Layout } from "../daemon";
-import { CarIcon, MusicIcon, PhoneIcon, PlayIcon } from "./icons";
+import type { AppState, Layout } from "../daemon";
+import { appLook } from "../apps";
+import { CarIcon, PhoneIcon } from "./icons";
 
 interface Props {
   hidden: boolean;
   aaConnected: boolean;
-  stremioRunning: boolean;
+  apps: Record<string, AppState>;
   onOpen: (layout: Layout) => void;
 }
 
-/** Home screen: shown when Android Auto is closed or no phone is connected. */
-export function Home({ hidden, aaConnected, stremioRunning, onOpen }: Props) {
+/** Home screen: clock, Android Auto, and a launcher grid of the other apps. */
+export function Home({ hidden, aaConnected, apps, onOpen }: Props) {
   const now = useClock();
+  const launchable = Object.entries(apps).filter(([id]) => id !== "aa");
 
   return (
     <div className="home" data-hidden={hidden}>
@@ -36,25 +38,18 @@ export function Home({ hidden, aaConnected, stremioRunning, onOpen }: Props) {
           <span className="status-dot" />
         </button>
 
-        <button className="card card-stremio" onClick={() => onOpen("stremio")}>
-          <div className="card-icon"><PlayIcon size={36} /></div>
-          <div className="card-body">
-            <div className="card-title">Stremio</div>
-            <div className="card-sub">{stremioRunning ? "Running — tap to return" : "Movies & shows · when parked"}</div>
-          </div>
-        </button>
-
-        <div className="card card-media">
-          <div className="card-icon"><MusicIcon size={36} /></div>
-          <div className="card-body">
-            <div className="card-title">Nothing playing</div>
-            <div className="card-sub">Bluetooth media comes in a later milestone</div>
-          </div>
-        </div>
-
-        <div className="card card-stat">
-          <div className="stat-value">—<span className="stat-unit">mph</span></div>
-          <div className="card-sub">Speed needs a GPS or the ESP32</div>
+        <div className="app-grid">
+          {launchable.map(([id, app]) => {
+            const look = appLook(id);
+            return (
+              <button key={id} className="app-tile" onClick={() => onOpen(id)} data-running={app.running}>
+                <span className="app-tile-icon" style={{ background: look.tint[0], color: look.tint[1] }}>
+                  {look.icon(40)}
+                </span>
+                <span className="app-tile-title">{app.title}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

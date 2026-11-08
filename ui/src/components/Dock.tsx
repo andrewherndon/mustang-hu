@@ -1,11 +1,13 @@
-import type { Layout } from "../daemon";
+import type { AppState, Layout } from "../daemon";
+import { appLook } from "../apps";
 import { formatTime, useClock } from "../useClock";
-import { CarIcon, HomeIcon, KeyboardIcon, MusicIcon, PlayIcon, SettingsIcon, VolumeIcon } from "./icons";
+import { CarIcon, HomeIcon, KeyboardIcon, SettingsIcon, VolumeIcon } from "./icons";
 
 interface Props {
   height: number;
   layout: Layout;
   aaConnected: boolean;
+  apps: Record<string, AppState>;
   online: boolean;
   keyboardAvailable: boolean;
   onOpen: (layout: Layout) => void;
@@ -13,7 +15,9 @@ interface Props {
 }
 
 /** Bottom strip below Android Auto; always visible, in every layout. */
-export function Dock({ height, layout, aaConnected, online, keyboardAvailable, onOpen, onKeyboard }: Props) {
+export function Dock({ height, layout, aaConnected, apps, online, keyboardAvailable, onOpen, onKeyboard }: Props) {
+  // Quick switching: every web app that is running (launch new ones from Home).
+  const running = Object.entries(apps).filter(([id, app]) => id !== "aa" && app.running);
   const now = useClock();
 
   return (
@@ -27,11 +31,13 @@ export function Dock({ height, layout, aaConnected, online, keyboardAvailable, o
           <CarIcon />
           {aaConnected && <span className="dock-badge" />}
         </button>
-        <button className="dock-btn" data-active={layout === "stremio"} onClick={() => onOpen("stremio")}
-                aria-label="Stremio">
-          <PlayIcon />
-        </button>
-        <button className="dock-btn" disabled aria-label="Music"><MusicIcon /></button>
+        {running.length > 0 && <span className="dock-sep" />}
+        {running.map(([id, app]) => (
+          <button key={id} className="dock-btn" data-active={layout === id} onClick={() => onOpen(id)}
+                  aria-label={app.title} style={{ color: layout === id ? appLook(id).tint[1] : undefined }}>
+            {appLook(id).icon(28)}
+          </button>
+        ))}
       </div>
 
       <div className="dock-center">

@@ -1,11 +1,14 @@
 #!/bin/bash
-# Launch a web app for the head unit's app slot:  hu-webapp <name> <url>
-# Each app gets its own Chromium profile (logins persist, isolated from the
-# shell). hu-daemon recognises the window by its app_id and places it.
+# Launch a web app for the head unit's app slot:
+#   hu-webapp <profile> <url>              app window (no browser UI)
+#   hu-webapp <profile> --browser <url>    normal browser window (tabs, address bar)
+# Profiles persist logins and are isolated from the shell; apps may share one
+# (Gmail, Calendar and YouTube share "google"). hu-daemon recognises the window
+# by its app_id and places it.
 name=$1
-url=$2
+if [ "$2" = "--browser" ]; then mode=("$3"); else mode=(--app="$2"); fi
 exec chromium \
-  --app="$url" \
+  "${mode[@]}" \
   --user-data-dir="$HOME/.config/hu-apps/$name" \
   --ozone-platform=wayland \
   --force-device-scale-factor=2 \
