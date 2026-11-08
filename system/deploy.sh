@@ -1,28 +1,53 @@
 #!/bin/bash
-# Install the daemon, scripts and Sway config on the Surface. Run from the Mac:
+# Install the head unit on the Surface. Run from the Mac:
 #   system/deploy.sh [host]          (default host: andre@mustang over Tailscale)
-# Idempotent: safe to run after every change. Restarts the daemon and shell.
+# Builds the React shell, installs it with the daemon, scripts, services, Sway
+# config and boot settings, then restarts the daemon and shell.
+# Idempotent: safe to run after every change.
 set -euo pipefail
 HOST=${1:-andre@100.123.180.33}
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 
+(cd "$ROOT/ui" && npm run build --silent >/dev/null)
+
 ssh "$HOST" mkdir -p /tmp/hu-deploy
 rsync -a --delete "$ROOT/daemon/" "$HOST:/tmp/hu-deploy/daemon/"
+rsync -a --delete "$ROOT/ui/dist/" "$HOST:/tmp/hu-deploy/ui/"
 rsync -a "$ROOT/system/" "$HOST:/tmp/hu-deploy/system/"
 
 ssh "$HOST" bash -s <<'REMOTE'
 set -euo pipefail
+D=/tmp/hu-deploy
 sudo install -d /opt/headunit
-sudo rsync -a --delete /tmp/hu-deploy/daemon/ /opt/headunit/daemon/
-sudo install -m755 /tmp/hu-deploy/system/bin/* /usr/local/bin/
+sudo rsync -a --delete $D/daemon/ /opt/headunit/daemon/
+sudo rsync -a --delete $D/ui/ /opt/headunit/ui/
+sudo install -m755 $D/system/bin/* /usr/local/bin/
 sudo rm -f /usr/local/bin/aa-video-watch            # replaced by hu-daemon
-for unit in /tmp/hu-deploy/system/systemd/*.service; do
+for unit in $D/system/systemd/*.service; do
   sudo install -m644 "$unit" /etc/systemd/system/
 done
 sudo systemctl daemon-reload
 sudo systemctl enable --now ydotoold.service >/dev/null 2>&1
-install -D -m644 /tmp/hu-deploy/system/sway/headunit.conf ~/.config/sway/headunit.conf
 
+# ---- boot: no menu, quiet kernel, greetd starts the Sway session ----
+sudo install -m644 $D/system/boot/loader.conf /boot/loader/loader.conf
+install -m644 $D/system/boot/bash_profile ~/.bash_profile
+pacman -Q greetd >/dev/null 2>&1 || sudo pacman -S --noconfirm --needed greetd >/dev/null
+sudo install -m644 $D/system/boot/greetd.toml /etc/greetd/config.toml
+sudo rm -f /etc/systemd/system/getty@tty1.service.d/autologin.conf   # replaced by greetd
+sudo systemctl daemon-reload
+sudo systemctl enable greetd.service >/dev/null 2>&1
+# Kernel command line: add quiet-boot options once, then rebuild the unified
+# kernel images (they embed the command line).
+QUIET="quiet loglevel=3 rd.udev.log_level=3 systemd.show_status=auto"
+if ! grep -q "loglevel=3" /etc/kernel/cmdline; then
+  echo "$(cat /etc/kernel/cmdline) $QUIET" | sudo tee /etc/kernel/cmdline >/dev/null
+  sudo linux-sp11-mkuki >/dev/null
+  echo "kernel images rebuilt with: $(cat /etc/kernel/cmdline)"
+fi
+
+# ---- sway ----
+install -D -m644 $D/system/sway/headunit.conf ~/.config/sway/headunit.conf
 # Main Sway config: drop the default status bar and earlier ad-hoc head-unit
 # lines, then include headunit.conf (once).
 python3 - <<'PY'
@@ -40,13 +65,16 @@ if "include ~/.config/sway/headunit.conf" not in s:
 p.write_text(s)
 PY
 
-export SWAYSOCK=$(ls /run/user/$(id -u)/sway-ipc.*.sock | head -1)
-pkill -f aa-video-watch || true
-swaymsg reload >/dev/null
-# (Re)start the daemon and the shell; aa-supervisor keeps running.
-pkill -f /opt/headunit/daemon/hu_daemon.py || true
-pgrep -f "bin/hu-daemon" >/dev/null || swaymsg exec "hu-daemon > /tmp/hu-daemon.log 2>&1" >/dev/null
-pgrep -f aa-supervisor >/dev/null || swaymsg exec "aa-supervisor > /tmp/aa-supervisor.log 2>&1" >/dev/null
-swaymsg exec "hu-shell > /tmp/hu-shell.log 2>&1" >/dev/null
+# ---- restart what changed (only if Sway is running) ----
+if SWAYSOCK=$(ls /run/user/$(id -u)/sway-ipc.*.sock 2>/dev/null | head -1) && [ -n "$SWAYSOCK" ]; then
+  export SWAYSOCK
+  pkill -f aa-video-watch || true
+  swaymsg reload >/dev/null
+  pkill -f /opt/headunit/daemon/hu_daemon.py || true          # hu-daemon's loop restarts it
+  pgrep -f "bin/hu-daemon" >/dev/null || swaymsg exec "hu-daemon > /tmp/hu-daemon.log 2>&1" >/dev/null
+  pgrep -f aa-supervisor >/dev/null || swaymsg exec "aa-supervisor > /tmp/aa-supervisor.log 2>&1" >/dev/null
+  pgrep -f "[h]ttp.server 8080" >/dev/null || swaymsg exec "hu-ui-server > /tmp/hu-ui-server.log 2>&1" >/dev/null
+  swaymsg exec "hu-shell > /tmp/hu-shell.log 2>&1" >/dev/null
+fi
 echo "deployed"
 REMOTE

@@ -1,11 +1,22 @@
 #!/bin/bash
 # Run the React shell in Chromium as a borderless app window (not --kiosk:
-# a fullscreen window would cover the floating Android Auto window).
+# a fullscreen window would cover the floating app windows).
 #
-# URL: ~/.config/headunit/shell-url if present (during development this points
-# at the Vite dev server on the Mac over Tailscale), else the local build.
+# Which UI to load:
+#   - the Mac's Vite dev server, if ~/.config/headunit/shell-url names one and it
+#     answers within a second (development: saves hot-reload on the car screen);
+#   - otherwise the build installed on the Surface, served by hu-ui-server.
+#     This is what runs in the car.
+LOCAL_URL="http://localhost:8080/"
 url_file="$HOME/.config/headunit/shell-url"
-url=$(cat "$url_file" 2>/dev/null || echo "http://localhost:8080")
+url=$LOCAL_URL
+if dev=$(cat "$url_file" 2>/dev/null) && curl -fs -o /dev/null --max-time 1 "$dev"; then
+  url=$dev
+else
+  # hu-ui-server starts alongside us; wait (briefly) until it answers.
+  for _ in $(seq 50); do curl -fs -o /dev/null --max-time 0.2 "$LOCAL_URL" && break; sleep 0.1; done
+fi
+echo "hu-shell: loading $url"
 
 pkill -f -- "--user-data-dir=$HOME/.config/hu-chromium" 2>/dev/null
 exec chromium \

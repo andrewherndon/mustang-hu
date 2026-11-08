@@ -1,0 +1,4 @@
+#!/bin/sh
+# The head unit's graphical session (started by greetd): Sway, which in turn
+# starts everything in ~/.config/sway/headunit.conf.
+exec sway > /tmp/sway.log 2>&1

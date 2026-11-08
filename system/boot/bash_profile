@@ -1,0 +1,6 @@
+#
+# ~/.bash_profile (installed by mustang-hu system/deploy.sh)
+#
+[[ -f ~/.bashrc ]] && . ~/.bashrc
+# The head unit's Sway session is started by greetd (see /etc/greetd/config.toml),
+# not from here. Other ttys (Ctrl+Alt+F2) give a normal shell for maintenance.

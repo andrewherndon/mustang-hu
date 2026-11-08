@@ -1,0 +1,15 @@
+# /etc/greetd/config.toml (installed by mustang-hu system/deploy.sh)
+# Kiosk login: start the head unit's Sway session as andre, no prompt.
+[terminal]
+vt = 1
+
+# Runs once at boot.
+[initial_session]
+command = "hu-session"
+user = "andre"
+
+# Runs whenever the session above (or a later one) ends, e.g. if Sway crashed:
+# the same head-unit session again, so the screen never drops to a login prompt.
+[default_session]
+command = "hu-session"
+user = "andre"
