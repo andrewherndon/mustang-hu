@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { AppState, Layout } from "../daemon";
-import { appLook } from "../apps";
+import { AppIcon } from "../apps";
 import { formatTime, useClock } from "../useClock";
 import { CarIcon, HomeIcon, KeyboardIcon, MuteIcon, SettingsIcon, VolumeIcon } from "./icons";
 
@@ -63,9 +63,9 @@ export function Dock({ height, layout, aaConnected, apps, online, keyboardAvaila
         </button>
         {running.length > 0 && <span className="dock-sep" />}
         {running.map(([id, app]) => (
-          <button key={id} className="dock-btn" data-active={layout === id} onClick={() => onOpen(id)}
-                  aria-label={app.title} style={{ color: layout === id ? appLook(id).tint[1] : undefined }}>
-            {appLook(id).icon(28)}
+          <button key={id} className="dock-btn dock-app" data-active={layout === id} onClick={() => onOpen(id)}
+                  aria-label={app.title}>
+            <AppIcon id={id} title={app.title} size={52} />
           </button>
         ))}
       </div>

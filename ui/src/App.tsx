@@ -5,7 +5,7 @@ import { Dock } from "./components/Dock";
 import { DevBar } from "./components/DevBar";
 import { Keyboard } from "./components/Keyboard";
 import { Controls } from "./components/Controls";
-import { Backdrop } from "./components/Backdrop";
+import { DitherBackdrop } from "./components/DitherBackdrop";
 import { Appearance } from "./components/Appearance";
 import { useAppearance } from "./theme";
 
@@ -59,7 +59,7 @@ export function App() {
         data-layout={state.layout}
         style={{ width: stageW, height: stageH, transform: `scale(${fit})` }}
       >
-        <Backdrop />
+        <DitherBackdrop hue={appearance.hue} running={state.layout === "home" && appearance.motion} />
         {/* Area above the dock: the home screen, or the slot an app (Android Auto, Stremio) is placed into. */}
         <section className="main" style={{ height: kbOpen ? stageH - kbHeight : aa.y + aa.height }}>
           <Home

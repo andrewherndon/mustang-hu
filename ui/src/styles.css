@@ -137,59 +137,14 @@ button:disabled { cursor: default; }
   font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text);
 }
 
-/* ---------- animated gradient backdrop ---------- */
-.backdrop { position: absolute; inset: 0; overflow: hidden; background: var(--bg-base); }
-.backdrop > div { position: absolute; will-change: transform; animation-play-state: var(--motion, running); }
-/* A broad diagonal band (the "wave" in the reference), soft-edged by its gradient. */
-.bd-band {
-  width: 180%; height: 70%; left: -40%; top: 30%; border-radius: 50%;
-  transform-origin: 50% 50%;
-}
-.bd-band-1 {
-  background: radial-gradient(closest-side, var(--band-1), transparent 72%);
-  transform: rotate(-24deg);
-  animation: drift-band 38s ease-in-out infinite alternate;
-}
-.bd-band-2 {
-  top: 48%; opacity: 0.8;
-  background: radial-gradient(closest-side, var(--band-2), transparent 70%);
-  transform: rotate(-18deg);
-  animation: drift-band-2 52s ease-in-out infinite alternate;
-}
-/* One crisp curved edge sweeping across (the Apple-style "wave"): a huge
-   ellipse whose rim is sharp while its fill fades into the background. */
-.bd-curve {
-  width: 190%; height: 150%; left: -18%; top: 38%; border-radius: 50%;
-  background: linear-gradient(172deg, var(--band-1) 0%, var(--band-2) 18%, transparent 52%);
-  opacity: 0.85; transform: rotate(-16deg);
-  box-shadow: 0 -2px 60px -10px var(--glow-1);
-  animation: drift-curve 46s ease-in-out infinite alternate;
-}
-@keyframes drift-curve { from { transform: rotate(-16deg) translate(0, 0); } to { transform: rotate(-11deg) translate(-4%, -5%); } }
-.bd-glow { width: 70%; height: 90%; border-radius: 50%; }
-.bd-glow-1 {
-  left: 35%; top: -30%;
-  background: radial-gradient(closest-side, var(--glow-1), transparent 70%);
-  animation: drift-glow 44s ease-in-out infinite alternate;
-}
-.bd-glow-2 {
-  left: -20%; top: 55%;
-  background: radial-gradient(closest-side, var(--glow-2), transparent 70%);
-  animation: drift-glow-2 60s ease-in-out infinite alternate;
-}
-.bd-vignette { inset: 0; background: radial-gradient(120% 90% at 30% 20%, transparent 40%, rgba(0, 0, 0, 0.55)); }
-@keyframes drift-band { from { transform: rotate(-24deg) translate(-4%, 0) scale(1); } to { transform: rotate(-19deg) translate(5%, -6%) scale(1.08); } }
-@keyframes drift-band-2 { from { transform: rotate(-18deg) translate(3%, 2%); } to { transform: rotate(-23deg) translate(-6%, -4%) scale(1.1); } }
-@keyframes drift-glow { from { transform: translate(0, 0) scale(1); } to { transform: translate(-12%, 10%) scale(1.15); } }
-@keyframes drift-glow-2 { from { transform: translate(0, 0) scale(1.1); } to { transform: translate(18%, -12%) scale(0.95); } }
-/* Nothing to see behind an app: stop animating. */
-.stage:not([data-layout="home"]) .backdrop > div { animation-play-state: paused; }
+/* ---------- dithered backdrop (WebGL, see DitherBackdrop.tsx) ---------- */
+.dither { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .stage > .main, .stage > nav, .stage > .kb, .stage > .controls { position: relative; z-index: 1; }
 
-/* ---------- home (Niagara-inspired) ---------- */
+/* ---------- home ---------- */
 .home {
-  position: absolute; inset: 0; padding: 56px 120px 32px 72px;
-  display: flex; gap: 48px;
+  position: absolute; inset: 0; padding: 64px 64px 40px 72px;
+  display: flex; align-items: stretch; gap: 48px;
   transition: opacity 220ms var(--ease), transform 320ms var(--ease);
 }
 .home[data-hidden="true"] { opacity: 0; transform: scale(0.985); pointer-events: none; }
@@ -197,64 +152,47 @@ button:disabled { cursor: default; }
 
 .clock {
   font-family: "Outfit Variable", "Inter Variable", sans-serif;
-  font-size: 112px; font-weight: 300; letter-spacing: 0.01em; line-height: 1;
-  font-variant-numeric: tabular-nums;
+  font-size: 132px; font-weight: 300; letter-spacing: 0.01em; line-height: 1;
+  font-variant-numeric: tabular-nums; text-shadow: 0 2px 30px rgba(0, 0, 0, 0.35);
 }
-.clock-date { margin-top: 10px; font-size: 22px; font-weight: 450; color: rgba(255, 255, 255, 0.75); }
+.clock-date { margin-top: 12px; font-size: 24px; font-weight: 450; color: rgba(255, 255, 255, 0.78); }
 
-.nowplaying { margin-top: 28px; display: flex; align-items: center; gap: 20px; max-width: 520px; }
-.np-art {
-  width: 84px; height: 84px; border-radius: 14px; flex: none;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.nowplaying {
+  margin-top: auto; display: flex; align-items: center; gap: 22px; max-width: 520px;
+  padding: 18px; border-radius: 28px; background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.07); backdrop-filter: blur(18px);
 }
+.np-art { width: 88px; height: 88px; border-radius: 16px; flex: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)); }
 .np-title { font-size: 22px; font-weight: 600; }
 .np-sub { margin-top: 4px; font-size: 17px; color: rgba(255, 255, 255, 0.6); }
 
-.favs {
-  margin-top: 34px; display: grid; grid-template-columns: repeat(2, minmax(0, 340px));
-  column-gap: 40px; row-gap: 6px; transition: opacity 160ms var(--ease);
+/* Apps: large icons in a grid on the right */
+.app-grid {
+  flex: none; align-self: center; display: grid; grid-template-columns: repeat(4, 150px);
+  column-gap: 16px; row-gap: 26px;
 }
-.favs[data-dimmed="true"] { opacity: 0.25; }
-.fav {
-  position: relative; display: flex; align-items: center; gap: 18px; height: 64px;
-  padding: 0 14px 0 6px; border-radius: 18px; text-align: left;
-  transition: background 120ms var(--ease), transform 120ms var(--ease);
+.app {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 10px 0; border-radius: 28px; transition: transform 140ms var(--ease), opacity 140ms;
 }
-.fav:active { background: rgba(255, 255, 255, 0.08); transform: scale(0.98); }
-.fav[data-disabled="true"] { opacity: 0.4; }
-.fav-icon { width: 52px; height: 52px; flex: none; border-radius: 15px; display: grid; place-items: center;
-  backdrop-filter: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06); }
-.fav-label { font-size: 23px; font-weight: 500; letter-spacing: 0.005em; }
-.fav-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 12px var(--ok); }
-.fav-running { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.55); }
+.app:active { transform: scale(0.93); }
+.app:disabled { opacity: 0.38; }
+.app-label { font-size: 19px; font-weight: 550; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6); }
+.app-badge { position: absolute; top: 4px; right: 18px; width: 12px; height: 12px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85); box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.35); }
+.app-badge-live { background: var(--ok); box-shadow: 0 0 14px var(--ok), 0 0 0 3px rgba(0, 0, 0, 0.35); }
 
-/* Apps for the scrubbed/picked letter, next to the strip */
-.letter-panel {
-  position: absolute; right: 120px; top: 50%; width: 380px;
-  transform: translate(20px, -50%); opacity: 0; pointer-events: none;
-  display: flex; flex-direction: column; gap: 4px;
-  transition: opacity 140ms var(--ease), transform 200ms var(--ease);
+/* App icon: official artwork on a white rounded tile */
+.app-icon {
+  display: grid; place-items: center; flex: none; overflow: hidden;
+  background: #fff; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
-.letter-panel[data-open="true"] { opacity: 1; transform: translate(0, -50%); pointer-events: auto; }
-.letter-big {
-  font-family: "Outfit Variable", sans-serif; font-size: 96px; font-weight: 300; line-height: 1;
-  color: var(--accent); margin-bottom: 8px;
-}
-.letter-empty { font-size: 20px; color: rgba(255, 255, 255, 0.5); }
-
-.alpha {
-  position: absolute; right: 36px; top: 64px; bottom: 40px; width: 64px;
-  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-  touch-action: none;
-}
-.alpha-letter {
-  font-size: 15px; font-weight: 600; line-height: 1; color: rgba(255, 255, 255, 0.85);
-  transition: transform 90ms linear, color 90ms linear; transform-origin: right center;
-}
-.alpha[data-scrubbing="false"] .alpha-letter { transition: transform 260ms var(--ease); }
-.alpha-letter[data-has="false"] { color: rgba(255, 255, 255, 0.28); }
-.alpha-letter[data-active="true"] { color: var(--accent); }
+.app-icon img { width: 66%; height: 66%; object-fit: contain; pointer-events: none; }
+.app-icon b { color: #333; font-weight: 700; }
+.dock-app .app-icon { box-shadow: none; }
+.dock-app { opacity: 0.85; }
+.dock-app[data-active="true"] { opacity: 1; }
 
 /* ---------- appearance sheet ---------- */
 .sheet-scrim { position: absolute; inset: 0; z-index: 5; background: rgba(0, 0, 0, 0.35); display: grid; place-items: center; }
