@@ -1,6 +1,7 @@
 import { formatDate, formatTime, useClock } from "../useClock";
 import type { AppState, Layout } from "../daemon";
 import { AppIcon } from "../apps";
+import { MustangGraphic } from "./MustangGraphic";
 
 interface Props {
   hidden: boolean;
@@ -22,6 +23,8 @@ export function Home({ hidden, aaConnected, apps, onOpen }: Props) {
       <div className="home-left">
         <div className="clock">{formatTime(now)}</div>
         <div className="clock-date">{formatDate(now)}</div>
+
+        <MustangGraphic />
 
         <div className="nowplaying">
           <div className="np-art" />

@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 230" class="mustang-svg" role="img" aria-label="1995 Mustang GT convertible">
+  <!--
+    1995 Ford Mustang GT convertible (SN95), stylized side profile, facing right.
+    Parts are grouped by id so they can be animated (or the art swapped for a
+    designer's version that keeps the same ids):
+      #road #shadow #wind  #car > #body-bob > (#top #body #details)  #wheel-rear #wheel-front > .rim
+  -->
+  <defs>
+    <linearGradient id="paint" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff4a4f"/>
+      <stop offset="0.45" stop-color="#d9141c"/>
+      <stop offset="1" stop-color="#7d0a10"/>
+    </linearGradient>
+    <linearGradient id="paint-lower" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b80f17"/>
+      <stop offset="1" stop-color="#5c060b"/>
+    </linearGradient>
+    <linearGradient id="soft-top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbf8f1"/>
+      <stop offset="1" stop-color="#d9d3c6"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a4250"/>
+      <stop offset="0.55" stop-color="#151a22"/>
+      <stop offset="1" stop-color="#0b0e13"/>
+    </linearGradient>
+    <radialGradient id="rim" cx="0.45" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#f4f6f8"/>
+      <stop offset="0.7" stop-color="#b9c0c8"/>
+      <stop offset="1" stop-color="#7d858f"/>
+    </radialGradient>
+    <radialGradient id="shadow-grad" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#000" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <!-- One five-spoke GT wheel, centred on 0,0 (radius 39 tyre, 26 rim). -->
+    <path id="spoke" d="M-5.5 -8 L-9 -23 C-6 -24.5 6 -24.5 9 -23 L5.5 -8 Z"/>
+    <g id="wheel">
+      <circle r="39" fill="#121316"/>
+      <circle r="36" fill="none" stroke="#25272c" stroke-width="2"/>
+      <g class="rim">
+        <circle r="26" fill="#9aa1aa"/>
+        <circle r="24" fill="#20242a"/>
+        <g fill="url(#rim)" stroke="#7d858f" stroke-width="0.8">
+          <use href="#spoke"/>
+          <use href="#spoke" transform="rotate(72)"/>
+          <use href="#spoke" transform="rotate(144)"/>
+          <use href="#spoke" transform="rotate(216)"/>
+          <use href="#spoke" transform="rotate(288)"/>
+        </g>
+        <circle r="10" fill="url(#rim)" stroke="#6d747d" stroke-width="1"/>
+        <circle r="3.5" fill="#4a5058"/>
+        <circle r="26" fill="none" stroke="#d7dce1" stroke-width="1.6"/>
+      </g>
+    </g>
+  </defs>
+
+  <style>
+    .mustang-svg * { animation-play-state: inherit; }
+    #road-dash { stroke-dasharray: 34 30; animation: road 0.9s linear infinite; }
+    @keyframes road { to { stroke-dashoffset: 64; } }
+    .rim { animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #body-bob { animation: bob 2.6s ease-in-out infinite; }
+    @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.6px); } }
+    #top-flutter { transform-origin: 300px 92px; animation: flutter 0.5s ease-in-out infinite alternate; }
+    @keyframes flutter { from { transform: skewX(0deg); } to { transform: skewX(-0.6deg) translateY(-0.4px); } }
+    .wind { fill: none; stroke: #fff; stroke-linecap: round; stroke-dasharray: 60 400;
+      animation: wind 1.8s linear infinite; opacity: 0; }
+    .wind:nth-child(2) { animation-delay: 0.6s; }
+    .wind:nth-child(3) { animation-delay: 1.2s; }
+    @keyframes wind {
+      0% { stroke-dashoffset: 0; opacity: 0; }
+      20% { opacity: 0.55; }
+      80% { opacity: 0.35; }
+      100% { stroke-dashoffset: -460; opacity: 0; }
+    }
+  </style>
+
+  <!-- road and shadow -->
+  <g id="road">
+    <line x1="0" y1="214" x2="620" y2="214" stroke="#fff" stroke-opacity="0.08" stroke-width="2"/>
+    <line id="road-dash" x1="620" y1="222" x2="0" y2="222" stroke="#fff" stroke-opacity="0.18" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <ellipse id="shadow" cx="300" cy="211" rx="262" ry="12" fill="url(#shadow-grad)"/>
+
+  <!-- wind streaming off the windshield and over the top -->
+  <g id="wind">
+    <path class="wind" d="M352 66 C300 52 240 50 160 58 C110 63 70 70 20 72" stroke-width="2.2"/>
+    <path class="wind" d="M372 92 C320 80 250 76 190 80 C130 84 80 90 10 96" stroke-width="1.6"/>
+    <path class="wind" d="M600 140 C540 132 460 132 380 138" stroke-width="1.4"/>
+  </g>
+
+  <g id="car">
+    <g id="body-bob">
+      <!-- convertible soft top + side glass -->
+      <g id="top">
+        <g id="top-flutter">
+          <path d="M318 64 C296 59 264 57 236 58 C210 60 192 70 178 88 L166 104 L336 106 Z" fill="url(#soft-top)"/>
+          <path d="M236 59 C214 62 198 72 186 88" fill="none" stroke="#bdb5a5" stroke-width="1.6"/>
+          <path d="M318 64 C296 61 266 60 238 61" fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="1.4"/>
+        </g>
+        <!-- door glass (no B-pillar on the convertible) and quarter glass -->
+        <path d="M321 69 L361 105 L268 105 L266 72 C286 69 304 68 321 69 Z" fill="url(#glass)"/>
+        <path d="M258 73 L258 105 L196 105 C206 90 220 80 240 76 Z" fill="url(#glass)" opacity="0.95"/>
+        <path d="M262 72 L262 105" stroke="#d9d3c6" stroke-width="5"/>
+        <!-- windshield (raked) -->
+        <path d="M318 64 L374 107" stroke="#22262e" stroke-width="5.5" stroke-linecap="round"/>
+      </g>
+
+      <!-- body: SN95 side profile -->
+      <g id="body">
+        <path id="body-shell" fill="url(#paint)" d="
+          M58 188
+          C47 186 41 177 40 162
+          C39 142 41 122 47 110
+          C51 102 60 99 72 98
+          L170 99 C178 100 182 102 190 104
+          L374 107
+          C418 108 462 112 500 118
+          C522 121 540 126 550 133
+          C560 140 564 152 562 166
+          C561 177 556 185 546 188
+          L493 188
+          C492 158 472 132 447 132 C422 132 402 158 401 188
+          L207 188
+          C206 158 186 132 161 132 C136 132 116 158 115 188 Z"/>
+        <!-- lower body: rocker and valances -->
+        <path fill="url(#paint-lower)" d="M207 172 L401 172 L401 188 L207 188 Z"/>
+        <path fill="url(#paint-lower)" d="M493 174 L561 174 C559 181 554 186 546 188 L493 188 Z"/>
+        <path fill="url(#paint-lower)" d="M48 174 L115 174 L115 188 L56 188 C52 186 49 181 48 174 Z"/>
+        <!-- wheel arch lips -->
+        <path d="M115 188 C116 158 136 132 161 132 C186 132 206 158 207 188" fill="none" stroke="#3a0407" stroke-width="5"/>
+        <path d="M401 188 C402 158 422 132 447 132 C472 132 492 158 493 188" fill="none" stroke="#3a0407" stroke-width="5"/>
+      </g>
+
+      <g id="details">
+        <!-- shoulder highlight and lower body crease -->
+        <path d="M72 101 C160 102 300 108 374 110 C430 111 490 117 538 126" fill="none" stroke="#ff8f93" stroke-opacity="0.6" stroke-width="2"/>
+        <path d="M222 156 C300 154 360 153 398 154" fill="none" stroke="#ff6a70" stroke-opacity="0.3" stroke-width="1.5"/>
+        <!-- door shut lines and handle -->
+        <path d="M370 110 L374 172 M268 110 L264 172" fill="none" stroke="#6e070c" stroke-width="1.6" stroke-opacity="0.75"/>
+        <rect x="332" y="120" width="20" height="4" rx="2" fill="#5b060a"/>
+        <!-- SN95 side scoop: forward-pointing teardrop ahead of the rear wheel -->
+        <path d="M258 132 C238 124 218 125 208 134 C218 145 238 146 258 138 Z" fill="#6f0910"/>
+        <path d="M256 133 C238 128 222 128 213 134" fill="none" stroke="#ff8a90" stroke-opacity="0.5" stroke-width="1.2"/>
+        <!-- mirror on the door at the A-pillar -->
+        <path d="M362 101 C364 95 376 94 380 99 L377 106 L366 106 Z" fill="#b30f17"/>
+        <!-- swept headlight, amber corner light, side marker -->
+        <path d="M512 122 C532 123 548 128 557 138 L555 142 C543 136 528 132 510 130 Z" fill="#f4f2e8"/>
+        <path d="M557 143 C560 147 561 151 561 155 L551 151 L555 143 Z" fill="#ffb347"/>
+        <rect x="508" y="146" width="14" height="4" rx="2" fill="#ff9a2e" opacity="0.9"/>
+        <!-- front intake -->
+        <path d="M562 166 C561 174 557 180 551 182 L532 182 C539 178 544 172 546 166 Z" fill="#1a0306" opacity="0.75"/>
+        <!-- tail light and rear wing (GT) -->
+        <path d="M43 112 L60 112 L60 136 L40 136 C40 126 41 118 43 112 Z" fill="#7c0c12"/>
+        <path d="M45 115 L58 115 L58 133 L42 133 Z" fill="#ff3b3b" opacity="0.9"/>
+        <path d="M52 92 L104 92 C108 92 108 86 104 86 L58 86 C54 86 50 88 52 92 Z" fill="#c40f17"/>
+        <path d="M68 92 L70 99 M92 92 L90 99" stroke="#8a0a10" stroke-width="3.5"/>
+        <!-- dual exhaust -->
+        <rect x="60" y="185" width="22" height="6" rx="3" fill="#8c939c"/>
+      </g>
+    </g>
+
+    <g id="wheel-rear" transform="translate(161 176)"><use href="#wheel"/></g>
+    <g id="wheel-front" transform="translate(447 176)"><use href="#wheel"/></g>
+  </g>
+</svg>

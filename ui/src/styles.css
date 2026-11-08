@@ -194,6 +194,13 @@ button:disabled { cursor: default; }
 .dock-app { opacity: 0.85; }
 .dock-app[data-active="true"] { opacity: 1; }
 
+/* ---------- the car (MustangGraphic) ---------- */
+.mustang { margin: 26px 0 0 -10px; width: 560px; filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.35)); }
+.mustang svg { display: block; width: 100%; height: auto; }
+/* Follow the "Moving background" toggle, and stop while an app covers home. */
+.mustang svg * { animation-play-state: var(--motion, running) !important; }
+.stage:not([data-layout="home"]) .mustang svg * { animation-play-state: paused !important; }
+
 /* ---------- appearance sheet ---------- */
 .sheet-scrim { position: absolute; inset: 0; z-index: 5; background: rgba(0, 0, 0, 0.35); display: grid; place-items: center; }
 .sheet {
