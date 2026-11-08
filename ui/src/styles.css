@@ -195,7 +195,7 @@ button:disabled { cursor: default; }
 .dock-app[data-active="true"] { opacity: 1; }
 
 /* ---------- the car (MustangGraphic) ---------- */
-.mustang { width: 600px; margin: 14px 0 0 -40px; aspect-ratio: 1280 / 626; }
+.mustang { width: 600px; margin: 14px 0 0 -40px; }
 .mustang video { display: block; width: 100%; height: 100%; pointer-events: none; }
 
 /* ---------- appearance sheet ---------- */
