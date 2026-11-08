@@ -4,6 +4,7 @@ import { Home } from "./components/Home";
 import { Dock } from "./components/Dock";
 import { DevBar } from "./components/DevBar";
 import { Keyboard } from "./components/Keyboard";
+import { Controls } from "./components/Controls";
 
 /**
  * Chromium on the Surface runs at --force-device-scale-factor=2, so the
@@ -28,7 +29,8 @@ function useFitScale(width: number, height: number) {
 }
 
 export function App() {
-  const { state, online, setLayout, setKeyboard, sendKey, mockTyped, mockSetConnected } = useDaemon();
+  const { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, mockTyped, mockSetConnected } = useDaemon();
+  const [controlsOpen, setControlsOpen] = useState(false);
   const stageW = state.screen.width / SCALE;
   const stageH = state.screen.height / SCALE;
   const aa = {
@@ -71,6 +73,16 @@ export function App() {
 
         {kbOpen ? (
           <Keyboard height={kbHeight} onKey={sendKey} onClose={() => setKeyboard(false)} />
+        ) : controlsOpen ? (
+          <Controls
+            height={dockHeight}
+            volume={state.volume}
+            brightness={state.brightness}
+            onVolume={setVolume}
+            onMute={setMute}
+            onBrightness={setBrightness}
+            onClose={() => setControlsOpen(false)}
+          />
         ) : (
           <Dock
             height={dockHeight}
@@ -81,6 +93,8 @@ export function App() {
             keyboardAvailable={state.keyboard.available}
             onOpen={setLayout}
             onKeyboard={() => setKeyboard(true)}
+            onControls={() => setControlsOpen(true)}
+            volume={state.volume}
           />
         )}
       </div>

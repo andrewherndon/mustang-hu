@@ -30,3 +30,9 @@ export const PlayIcon = ({ size = 28 }: P) =>
 
 export const KeyboardIcon = ({ size = 28 }: P) =>
   svg(size, <><rect x="2" y="5" width="20" height="14" rx="2.5" /><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12.5h.01M10 12.5h.01M14 12.5h.01M18 12.5h.01M8 16h8" /></>);
+
+export const MuteIcon = ({ size = 28 }: P) =>
+  svg(size, <><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="m17 9 5 6M22 9l-5 6" /></>);
+
+export const BrightnessIcon = ({ size = 28 }: P) =>
+  svg(size, <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>);

@@ -162,3 +162,31 @@ button.card:not(:disabled):active { transform: scale(0.98); background: var(--su
   border-radius: 50%; background: var(--text-dim);
 }
 .dock-sep { width: 1px; height: 48px; background: var(--line); margin: 0 8px; }
+
+/* ---------- volume / brightness controls (replace the dock while open) ---------- */
+.dock-volume { flex-direction: column; gap: 2px; display: flex; align-items: center; justify-content: center; }
+.dock-volume-level { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; }
+.controls {
+  flex: none; display: flex; align-items: center; gap: 20px; padding: 0 40px;
+  background: var(--bg); border-top: 1px solid var(--line);
+}
+.controls .dock-btn { flex: none; }
+.controls-icon { flex: none; width: 56px; display: grid; place-items: center; color: var(--text-dim); }
+.controls-sep { flex: none; width: 1px; height: 56px; background: var(--line); margin: 0 8px; }
+.controls-done {
+  flex: none; height: 80px; padding: 0 32px; border-radius: 24px;
+  background: var(--surface-2); font-size: 22px; font-weight: 600;
+}
+.controls-done:active { transform: scale(0.96); }
+.slider {
+  position: relative; flex: 1; height: 80px; border-radius: 24px; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line); touch-action: none;
+}
+.slider-fill {
+  position: absolute; inset: 0; background: linear-gradient(90deg, #2a3140, #3b4658);
+  transform-origin: left center; transition: transform 70ms linear;
+}
+.slider-value {
+  position: absolute; right: 22px; top: 50%; transform: translateY(-50%);
+  font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text);
+}

@@ -15,6 +15,9 @@ export interface DaemonState {
   aaRect: Rect;
   /** The shell's keyboard: open, allowed for the current app, height in physical px. */
   keyboard: { open: boolean; available: boolean; height: number };
+  /** Default audio output (0..1) and panel backlight (0..1). */
+  volume: { level: number; muted: boolean };
+  brightness: number;
   screen: { width: number; height: number };
 }
 
@@ -35,6 +38,8 @@ export const DEFAULT_STATE: DaemonState = {
   layout: "home",
   aaRect: { x: 0, y: 0, width: 2880, height: 1620 },
   keyboard: { open: false, available: false, height: 760 },
+  volume: { level: 0.5, muted: false },
+  brightness: 0.6,
   screen: { width: 2880, height: 1920 },
 };
 
@@ -108,6 +113,21 @@ export function useDaemon() {
     ws.current?.send(JSON.stringify({ type: "key", ...k }));
   }, []);
 
+  const setVolume = useCallback((level: number) => {
+    if (MOCK) setState((s) => ({ ...s, volume: { level, muted: level === 0 ? s.volume.muted : false } }));
+    else ws.current?.send(JSON.stringify({ type: "setVolume", level }));
+  }, []);
+
+  const setMute = useCallback((muted: boolean) => {
+    if (MOCK) setState((s) => ({ ...s, volume: { ...s.volume, muted } }));
+    else ws.current?.send(JSON.stringify({ type: "setMute", muted }));
+  }, []);
+
+  const setBrightness = useCallback((level: number) => {
+    if (MOCK) setState((s) => ({ ...s, brightness: level }));
+    else ws.current?.send(JSON.stringify({ type: "setBrightness", level }));
+  }, []);
+
   /** Mock only: simulate plugging the phone in or out (the daemon auto-opens AA). */
   const mockSetConnected = useCallback((connected: boolean) => {
     setState((s) => ({
@@ -118,5 +138,5 @@ export function useDaemon() {
     }));
   }, []);
 
-  return { state, online, setLayout, setKeyboard, sendKey, mockTyped, mockSetConnected };
+  return { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, mockTyped, mockSetConnected };
 }

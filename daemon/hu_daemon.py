@@ -29,6 +29,8 @@ Protocol (JSON text frames on ws://localhost:8765)
                     "aa": {"connected": bool},                 (same as apps.aa.running)
                     "aaRect": {x, y, width, height},           (the app slot, keyboard closed)
                     "keyboard": {"open": bool, "available": bool, "height": int},
+                    "volume": {"level": 0..1, "muted": bool},     (default PipeWire output)
+                    "brightness": 0..1,                          (panel backlight)
                     "screen": {width, height}}
   shell -> daemon  {"type": "setLayout", "layout": "home" | <app id>}
                    Opening an app that is not running launches it first.
@@ -39,6 +41,10 @@ Protocol (JSON text frames on ws://localhost:8765)
                    {"type": "key", "text": "a"}  or  {"type": "key", "key": "BackSpace"}
                    Type into the app in the slot: focus it, then inject the key
                    with ydotool ("key": BackSpace, Return, Tab, Left, Right).
+                   {"type": "setVolume", "level": 0..1} / {"type": "setMute", "muted": bool}
+                   {"type": "setBrightness", "level": 0..1}
+Volume and brightness are also polled, so changes from the hardware volume
+buttons (bound in Sway) reach the shell.
 
 Rectangles are in physical screen pixels (Sway runs at scale 1).
 """
@@ -61,6 +67,10 @@ KEYBOARD_HEIGHT = 760
 # every app sees ordinary key presses in the normal US layout. (wtype's
 # temporary per-character keymap broke punctuation in Chromium's own UI.)
 YDOTOOL_ENV = {**os.environ, "YDOTOOL_SOCKET": "/run/ydotool/socket"}
+BACKLIGHT = "backlight"            # /sys/class/backlight/<name>
+MIN_BRIGHTNESS = 0.03              # never let the screen go fully dark
+POLL_SECONDS = 1.0
+
 KEYCODES = {"BackSpace": 14, "Tab": 15, "Return": 28, "Left": 105, "Right": 106}   # linux/input-event-codes.h
 AUTO_OPEN_AA = True   # switch to Android Auto when a phone connects
 
@@ -104,6 +114,9 @@ class Daemon:
         self.clients = set()
         self.launching = set()   # app ids launched but whose window has not appeared yet
         self.keyboard = False
+        self.volume = {"level": 0.0, "muted": False}
+        self.brightness = 1.0
+        self.max_brightness = int(open(f"/sys/class/backlight/{BACKLIGHT}/max_brightness").read())
         self.type_lock = asyncio.Lock()   # keeps injected keystrokes in order
 
     # ---------- state ----------
@@ -117,6 +130,8 @@ class Daemon:
             "aaRect": SLOT_RECT,
             "keyboard": {"open": self.keyboard, "available": self.keyboard_available(),
                          "height": KEYBOARD_HEIGHT},
+            "volume": self.volume,
+            "brightness": self.brightness,
             "screen": SCREEN,
         }
 
@@ -289,6 +304,60 @@ class Daemon:
             if proc.returncode != 0:
                 log.warning("ydotool %s failed: %s", args, err.decode().strip())
 
+    # ---------- volume (PipeWire via wpctl) and brightness (logind) ----------
+    @staticmethod
+    async def cmd(*args):
+        proc = await asyncio.create_subprocess_exec(
+            *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        out, err = await proc.communicate()
+        if proc.returncode != 0:
+            log.warning("%s failed: %s", args, err.decode().strip())
+        return out.decode().strip()
+
+    async def read_volume(self):
+        out = await self.cmd("wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@")   # "Volume: 0.45 [MUTED]"
+        try:
+            return {"level": min(float(out.split()[1]), 1.0), "muted": "MUTED" in out}
+        except (IndexError, ValueError):
+            return self.volume
+
+    def read_brightness(self):
+        raw = int(open(f"/sys/class/backlight/{BACKLIGHT}/brightness").read())
+        return round(raw / self.max_brightness, 3)
+
+    async def set_volume(self, level):
+        level = max(0.0, min(1.0, float(level)))
+        await self.cmd("wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", f"{level:.3f}")
+        if level > 0 and self.volume["muted"]:
+            await self.cmd("wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "0")
+        await self.refresh_controls()
+
+    async def set_mute(self, muted):
+        await self.cmd("wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "1" if muted else "0")
+        await self.refresh_controls()
+
+    async def set_brightness(self, level):
+        level = max(MIN_BRIGHTNESS, min(1.0, float(level)))
+        # logind lets the active session's user set the backlight without root.
+        await self.cmd("busctl", "call", "org.freedesktop.login1", "/org/freedesktop/login1/session/auto",
+                       "org.freedesktop.login1.Session", "SetBrightness", "ssu",
+                       "backlight", BACKLIGHT, str(round(level * self.max_brightness)))
+        await self.refresh_controls()
+
+    async def refresh_controls(self):
+        volume, brightness = await self.read_volume(), self.read_brightness()
+        if volume != self.volume or brightness != self.brightness:
+            self.volume, self.brightness = volume, brightness
+            await self.broadcast()
+
+    async def poll_controls(self):
+        while True:
+            try:
+                await self.refresh_controls()
+            except Exception:
+                log.exception("polling volume/brightness failed")
+            await asyncio.sleep(POLL_SECONDS)
+
     # ---------- websocket ----------
     async def handle_client(self, ws):
         self.clients.add(ws)
@@ -306,6 +375,12 @@ class Daemon:
                     await self.set_keyboard(msg.get("open"))
                 elif msg.get("type") == "key":
                     await self.type_key(msg)
+                elif msg.get("type") == "setVolume" and isinstance(msg.get("level"), (int, float)):
+                    await self.set_volume(msg["level"])
+                elif msg.get("type") == "setMute":
+                    await self.set_mute(bool(msg.get("muted")))
+                elif msg.get("type") == "setBrightness" and isinstance(msg.get("level"), (int, float)):
+                    await self.set_brightness(msg["level"])
         except websockets.ConnectionClosed:
             pass                                   # shell reloaded or went away
         finally:
@@ -313,6 +388,8 @@ class Daemon:
 
     async def run(self):
         await self.scan_existing()
+        await self.refresh_controls()
+        asyncio.create_task(self.poll_controls())
         async with websockets.serve(self.handle_client, HOST, PORT):
             log.info("listening on ws://%s:%d", HOST, PORT)
             await self.watch_sway()

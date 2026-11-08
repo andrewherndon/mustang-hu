@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { AppState, Layout } from "../daemon";
 import { appLook } from "../apps";
 import { formatTime, useClock } from "../useClock";
-import { CarIcon, HomeIcon, KeyboardIcon, SettingsIcon, VolumeIcon } from "./icons";
+import { CarIcon, HomeIcon, KeyboardIcon, MuteIcon, SettingsIcon, VolumeIcon } from "./icons";
 
 interface Props {
   height: number;
@@ -13,6 +13,8 @@ interface Props {
   keyboardAvailable: boolean;
   onOpen: (layout: Layout) => void;
   onKeyboard: () => void;
+  onControls: () => void;
+  volume: { level: number; muted: boolean };
 }
 
 /** Running-app buttons that fit in the left column next to Home and Android Auto. */
@@ -37,7 +39,7 @@ function useRecentApps(layout: Layout) {
  * Three columns (left buttons | clock | right buttons) so the centred clock
  * never overlaps the icons.
  */
-export function Dock({ height, layout, aaConnected, apps, online, keyboardAvailable, onOpen, onKeyboard }: Props) {
+export function Dock({ height, layout, aaConnected, apps, online, keyboardAvailable, onOpen, onKeyboard, onControls, volume }: Props) {
   // Quick switching between running web apps (launch new ones from Home).
   // Only the most recently used fit beside the clock; the rest stay on Home.
   const recent = useRecentApps(layout);
@@ -75,7 +77,10 @@ export function Dock({ height, layout, aaConnected, apps, online, keyboardAvaila
         {keyboardAvailable && (
           <button className="dock-btn" onClick={onKeyboard} aria-label="Keyboard"><KeyboardIcon /></button>
         )}
-        <button className="dock-btn" disabled aria-label="Volume"><VolumeIcon /></button>
+        <button className="dock-btn dock-volume" onClick={onControls} aria-label="Volume and brightness">
+          {volume.muted ? <MuteIcon /> : <VolumeIcon />}
+          <span className="dock-volume-level">{volume.muted ? "" : Math.round(volume.level * 100)}</span>
+        </button>
         <button className="dock-btn" disabled aria-label="Settings"><SettingsIcon /></button>
         <span className="daemon-dot" data-online={online} title={online ? "daemon connected" : "daemon offline"} />
       </div>
