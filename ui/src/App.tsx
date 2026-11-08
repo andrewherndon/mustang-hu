@@ -7,13 +7,16 @@ import { DevBar } from "./components/DevBar";
 /**
  * Chromium on the Surface runs at --force-device-scale-factor=2, so the
  * 2880x1920 panel is a 1440x960 CSS-pixel stage. All layout is in stage px.
- * In a desktop browser the stage is scaled to fit the window instead.
+ * In a desktop browser (mock mode) the stage is scaled to fit the window.
+ * On the Surface it is never scaled: when the on-screen keyboard is up, Sway
+ * shrinks this window and the bottom of the stage simply sits behind it.
  */
 const SCALE = 2;
 
 function useFitScale(width: number, height: number) {
   const [fit, setFit] = useState(1);
   useEffect(() => {
+    if (!MOCK) return;
     const update = () =>
       setFit(Math.min(window.innerWidth / width, window.innerHeight / height, 1));
     update();
@@ -24,7 +27,7 @@ function useFitScale(width: number, height: number) {
 }
 
 export function App() {
-  const { state, online, setLayout, mockSetConnected } = useDaemon();
+  const { state, online, setLayout, toggleKeyboard, mockSetConnected } = useDaemon();
   const stageW = state.screen.width / SCALE;
   const stageH = state.screen.height / SCALE;
   const aa = {
@@ -39,7 +42,7 @@ export function App() {
   const slotVisible = state.layout !== "home";
 
   return (
-    <div className="viewport">
+    <div className="viewport" data-mock={MOCK}>
       <div
         className="stage"
         data-layout={state.layout}
@@ -66,6 +69,7 @@ export function App() {
           aaConnected={state.aa.connected}
           online={online}
           onOpen={setLayout}
+          onKeyboard={toggleKeyboard}
         />
       </div>
 

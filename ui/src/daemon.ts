@@ -79,6 +79,10 @@ export function useDaemon() {
     ws.current?.send(JSON.stringify({ type: "setLayout", layout }));
   }, []);
 
+  const toggleKeyboard = useCallback(() => {
+    if (!MOCK) ws.current?.send(JSON.stringify({ type: "toggleKeyboard" }));
+  }, []);
+
   /** Mock only: simulate plugging the phone in or out (the daemon auto-opens AA). */
   const mockSetConnected = useCallback((connected: boolean) => {
     setState((s) => ({
@@ -89,5 +93,5 @@ export function useDaemon() {
     }));
   }, []);
 
-  return { state, online, setLayout, mockSetConnected };
+  return { state, online, setLayout, toggleKeyboard, mockSetConnected };
 }

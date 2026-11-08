@@ -31,6 +31,9 @@ Protocol (JSON text frames on ws://localhost:8765)
                     "screen": {width, height}}
   shell -> daemon  {"type": "setLayout", "layout": "home" | <app id>}
                    Opening an app that is not running launches it first.
+                   {"type": "toggleKeyboard"}
+                   Show/hide the on-screen keyboard (squeekboard), then give focus
+                   back to the app in the slot so typing goes there, not to the dock.
 
 Rectangles are in physical screen pixels (Sway runs at scale 1).
 """
@@ -208,6 +211,23 @@ class Daemon:
             log.warning("sway subscription ended; retrying")
             await asyncio.sleep(2)
 
+    # ---------- on-screen keyboard (squeekboard, D-Bus sm.puri.OSK0) ----------
+    @staticmethod
+    async def busctl(*args):
+        proc = await asyncio.create_subprocess_exec(
+            "busctl", "--user", *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        out, err = await proc.communicate()
+        if proc.returncode != 0:
+            log.warning("busctl %s failed: %s", args, err.decode().strip())
+        return out.decode().strip()
+
+    async def toggle_keyboard(self):
+        osk = ("sm.puri.OSK0", "/sm/puri/OSK0", "sm.puri.OSK0")
+        visible = await self.busctl("get-property", *osk, "Visible") == "b true"
+        await self.busctl("call", *osk, "SetVisible", "b", "false" if visible else "true")
+        if self.layout in self.windows:
+            await self.sway(f"[con_id={self.windows[self.layout]}] focus")
+
     # ---------- websocket ----------
     async def handle_client(self, ws):
         self.clients.add(ws)
@@ -221,6 +241,8 @@ class Daemon:
                     continue
                 if msg.get("type") == "setLayout":
                     await self.set_layout(msg.get("layout"))
+                elif msg.get("type") == "toggleKeyboard":
+                    await self.toggle_keyboard()
         except websockets.ConnectionClosed:
             pass                                   # shell reloaded or went away
         finally:

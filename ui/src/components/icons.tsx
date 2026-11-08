@@ -27,3 +27,6 @@ export const PhoneIcon = ({ size = 28 }: P) =>
 
 export const PlayIcon = ({ size = 28 }: P) =>
   svg(size, <><rect x="2.5" y="4" width="19" height="16" rx="3" /><path d="m10 9 5 3-5 3z" /></>);
+
+export const KeyboardIcon = ({ size = 28 }: P) =>
+  svg(size, <><rect x="2" y="5" width="20" height="14" rx="2.5" /><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12.5h.01M10 12.5h.01M14 12.5h.01M18 12.5h.01M8 16h8" /></>);

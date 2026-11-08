@@ -1,6 +1,6 @@
 import type { Layout } from "../daemon";
 import { formatTime, useClock } from "../useClock";
-import { CarIcon, HomeIcon, MusicIcon, PlayIcon, SettingsIcon, VolumeIcon } from "./icons";
+import { CarIcon, HomeIcon, KeyboardIcon, MusicIcon, PlayIcon, SettingsIcon, VolumeIcon } from "./icons";
 
 interface Props {
   height: number;
@@ -8,10 +8,11 @@ interface Props {
   aaConnected: boolean;
   online: boolean;
   onOpen: (layout: Layout) => void;
+  onKeyboard: () => void;
 }
 
 /** Bottom strip below Android Auto; always visible, in every layout. */
-export function Dock({ height, layout, aaConnected, online, onOpen }: Props) {
+export function Dock({ height, layout, aaConnected, online, onOpen, onKeyboard }: Props) {
   const now = useClock();
 
   return (
@@ -37,6 +38,7 @@ export function Dock({ height, layout, aaConnected, online, onOpen }: Props) {
       </div>
 
       <div className="dock-group">
+        <button className="dock-btn" onClick={onKeyboard} aria-label="Keyboard"><KeyboardIcon /></button>
         <button className="dock-btn" disabled aria-label="Volume"><VolumeIcon /></button>
         <button className="dock-btn" disabled aria-label="Settings"><SettingsIcon /></button>
         <span className="daemon-dot" data-online={online} title={online ? "daemon connected" : "daemon offline"} />

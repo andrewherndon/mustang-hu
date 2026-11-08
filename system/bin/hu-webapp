@@ -10,6 +10,7 @@ exec chromium \
   --ozone-platform=wayland \
   --force-device-scale-factor=2 \
   --touch-events=enabled \
+  --enable-wayland-ime --wayland-text-input-version=3 \
   --overscroll-history-navigation=0 \
   --noerrdialogs --disable-session-crashed-bubble --no-first-run \
   --disable-features=TranslateUI \
