@@ -195,26 +195,8 @@ button:disabled { cursor: default; }
 .dock-app[data-active="true"] { opacity: 1; }
 
 /* ---------- the car (MustangGraphic) ---------- */
-.mustang { position: relative; width: 520px; margin: 20px 0 0 -6px; aspect-ratio: 1200 / 558; }
-.mustang img { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
-.mustang-shadow { animation: car-shadow 3.2s ease-in-out infinite; transform-origin: 50% 85%; }
-.mustang-body { position: absolute; inset: 0; animation: car-bob 3.2s ease-in-out infinite; }
-/* A soft highlight sweeping across the paint, clipped to the car's shape. */
-.mustang-glint {
-  position: absolute; inset: 0;
-  -webkit-mask: url(/art/mustang-car.webp) center / 100% 100% no-repeat;
-  mask: url(/art/mustang-car.webp) center / 100% 100% no-repeat;
-  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.28) 50%, transparent 60%) no-repeat;
-  background-size: 300% 100%;
-  mix-blend-mode: screen;
-  animation: car-glint 9s ease-in-out infinite;
-}
-@keyframes car-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
-@keyframes car-shadow { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.985); opacity: 0.9; } }
-@keyframes car-glint { 0%, 55% { background-position: 120% 0; } 85%, 100% { background-position: -20% 0; } }
-/* Follow the "Moving background" toggle, and stop while an app covers home. */
-.mustang * { animation-play-state: var(--motion, running); }
-.stage:not([data-layout="home"]) .mustang * { animation-play-state: paused; }
+.mustang { width: 600px; margin: 14px 0 0 -40px; aspect-ratio: 1280 / 626; }
+.mustang video { display: block; width: 100%; height: 100%; pointer-events: none; }
 
 /* ---------- appearance sheet ---------- */
 .sheet-scrim { position: absolute; inset: 0; z-index: 5; background: rgba(0, 0, 0, 0.35); display: grid; place-items: center; }

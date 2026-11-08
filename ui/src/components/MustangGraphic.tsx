@@ -1,19 +1,28 @@
+import { useEffect, useRef } from "react";
+
 /**
- * The car: a 1995 Mustang GT convertible illustration, cut out of its white
- * background into two layers (public/art/, made by tools/cutout_car.py):
- * the ground shadow stays put while the car gently rides on its suspension,
- * and a soft light glint sweeps across the paint now and then (masked to the
- * car's shape). styles.css pauses this with the motion toggle and while an
- * app covers the home screen.
+ * The car: a looping clip of the 1995 Mustang GT convertible driving at night,
+ * headlights on, road sliding past. The original (tools/mustang-drive-source.mp4,
+ * made with Google Flow) is on white; tools/car_video_alpha.py turns the white
+ * into transparency so it sits on the dithered background
+ * (public/art/mustang-drive.webm, VP9 with alpha).
+ *
+ * It only plays while the home screen is visible and motion is on; otherwise
+ * it is paused (no decoding work behind apps).
  */
-export function MustangGraphic() {
+export function MustangGraphic({ playing }: { playing: boolean }) {
+  const video = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const v = video.current;
+    if (!v) return;
+    if (playing) v.play().catch(() => {});
+    else v.pause();
+  }, [playing]);
+
   return (
     <div className="mustang" aria-hidden>
-      <img className="mustang-shadow" src="/art/mustang-shadow.webp" alt="" draggable={false} />
-      <div className="mustang-body">
-        <img className="mustang-car" src="/art/mustang-car.webp" alt="" draggable={false} />
-        <div className="mustang-glint" />
-      </div>
+      <video ref={video} src="/art/mustang-drive.webm" muted loop playsInline autoPlay={playing} disablePictureInPicture />
     </div>
   );
 }

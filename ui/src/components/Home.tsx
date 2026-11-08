@@ -5,6 +5,7 @@ import { MustangGraphic } from "./MustangGraphic";
 
 interface Props {
   hidden: boolean;
+  motion: boolean;
   aaConnected: boolean;
   apps: Record<string, AppState>;
   onOpen: (layout: Layout) => void;
@@ -14,7 +15,7 @@ interface Props {
 const ORDER = ["aa", "youtube", "stremio", "gmail", "calendar", "android", "chess", "browser"];
 
 /** Home: clock and now playing on the left, the apps as large icons on the right. */
-export function Home({ hidden, aaConnected, apps, onOpen }: Props) {
+export function Home({ hidden, motion, aaConnected, apps, onOpen }: Props) {
   const now = useClock();
   const ids = [...ORDER.filter((id) => apps[id]), ...Object.keys(apps).filter((id) => !ORDER.includes(id))];
 
@@ -24,7 +25,7 @@ export function Home({ hidden, aaConnected, apps, onOpen }: Props) {
         <div className="clock">{formatTime(now)}</div>
         <div className="clock-date">{formatDate(now)}</div>
 
-        <MustangGraphic />
+        <MustangGraphic playing={!hidden && motion} />
 
         <div className="nowplaying">
           <div className="np-art" />

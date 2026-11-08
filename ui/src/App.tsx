@@ -64,6 +64,7 @@ export function App() {
         <section className="main" style={{ height: kbOpen ? stageH - kbHeight : aa.y + aa.height }}>
           <Home
             hidden={slotVisible}
+            motion={appearance.motion}
             aaConnected={state.aa.connected}
             apps={state.apps}
             onOpen={setLayout}
