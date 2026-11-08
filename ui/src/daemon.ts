@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /** Mirrors the daemon protocol (daemon/hu_daemon.py). Rects are physical pixels. */
-export type Layout = "home" | "aa";
+export type AppId = "aa" | "stremio";
+/** "home", or the app shown in the slot (the 16:9 area above the dock). */
+export type Layout = "home" | AppId;
 export interface Rect { x: number; y: number; width: number; height: number }
+export interface AppState { title: string; running: boolean }
 export interface DaemonState {
   aa: { connected: boolean };
+  apps: Record<AppId, AppState>;
   layout: Layout;
   aaRect: Rect;
   screen: { width: number; height: number };
@@ -15,6 +19,10 @@ const DAEMON_URL = "ws://localhost:8765";
 /** Defaults match the Surface; used until the daemon answers, and in mock mode. */
 export const DEFAULT_STATE: DaemonState = {
   aa: { connected: false },
+  apps: {
+    aa: { title: "Android Auto", running: false },
+    stremio: { title: "Stremio", running: false },
+  },
   layout: "home",
   aaRect: { x: 0, y: 0, width: 2880, height: 1620 },
   screen: { width: 2880, height: 1920 },
@@ -60,7 +68,12 @@ export function useDaemon() {
 
   const setLayout = useCallback((layout: Layout) => {
     if (MOCK) {
-      setState((s) => ({ ...s, layout: layout === "aa" && !s.aa.connected ? "home" : layout }));
+      setState((s) => {
+        if (layout === "aa" && !s.aa.connected) return { ...s, layout: "home" };
+        if (layout === "home" || layout === "aa") return { ...s, layout };
+        // Web apps "launch" on first open, like the real daemon.
+        return { ...s, layout, apps: { ...s.apps, [layout]: { ...s.apps[layout], running: true } } };
+      });
       return;
     }
     ws.current?.send(JSON.stringify({ type: "setLayout", layout }));
@@ -68,7 +81,12 @@ export function useDaemon() {
 
   /** Mock only: simulate plugging the phone in or out (the daemon auto-opens AA). */
   const mockSetConnected = useCallback((connected: boolean) => {
-    setState((s) => ({ ...s, aa: { connected }, layout: connected ? "aa" : "home" }));
+    setState((s) => ({
+      ...s,
+      aa: { connected },
+      apps: { ...s.apps, aa: { ...s.apps.aa, running: connected } },
+      layout: connected ? "aa" : s.layout === "aa" ? "home" : s.layout,
+    }));
   }, []);
 
   return { state, online, setLayout, mockSetConnected };

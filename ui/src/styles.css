@@ -47,7 +47,7 @@ button:disabled { cursor: default; }
   display: grid; place-items: center; color: var(--text-dim); font-size: 20px;
   transition: opacity 180ms var(--ease);
 }
-.stage[data-layout="aa"] .aa-slot { opacity: 1; }
+.stage:not([data-layout="home"]) .aa-slot { opacity: 1; }
 
 /* ---------- home ---------- */
 .home {
@@ -79,6 +79,7 @@ button.card:not(:disabled):active { transform: scale(0.98); background: var(--su
 .card-title { font-size: 26px; font-weight: 600; }
 .card-sub { margin-top: 6px; font-size: 18px; color: var(--text-dim); }
 
+.card-stremio .card-icon { background: rgba(128, 90, 255, 0.14); color: #a58bff; }
 .card-aa[data-connected="true"] .card-icon { background: rgba(79, 140, 255, 0.14); color: var(--accent); }
 .card-aa .status-dot {
   position: absolute; top: 28px; right: 28px; width: 12px; height: 12px; border-radius: 50%;
@@ -110,7 +111,7 @@ button.card:not(:disabled):active { transform: scale(0.98); background: var(--su
 }
 .dock-center { position: absolute; left: 50%; transform: translateX(-50%); }
 .dock-time { font-size: 34px; font-weight: 500; font-variant-numeric: tabular-nums; opacity: 0; transition: opacity 200ms var(--ease); }
-.stage[data-layout="aa"] .dock-time { opacity: 1; }   /* home already shows a big clock */
+.stage:not([data-layout="home"]) .dock-time { opacity: 1; }   /* home already shows a big clock */
 .daemon-dot { width: 8px; height: 8px; border-radius: 50%; background: #e5484d; margin-left: 8px; }
 .daemon-dot[data-online="true"] { background: transparent; }
 

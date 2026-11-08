@@ -1,0 +1,16 @@
+#!/bin/bash
+# Launch a web app for the head unit's app slot:  hu-webapp <name> <url>
+# Each app gets its own Chromium profile (logins persist, isolated from the
+# shell). hu-daemon recognises the window by its app_id and places it.
+name=$1
+url=$2
+exec chromium \
+  --app="$url" \
+  --user-data-dir="$HOME/.config/hu-apps/$name" \
+  --ozone-platform=wayland \
+  --force-device-scale-factor=2 \
+  --touch-events=enabled \
+  --overscroll-history-navigation=0 \
+  --noerrdialogs --disable-session-crashed-bubble --no-first-run \
+  --disable-features=TranslateUI \
+  --autoplay-policy=no-user-gesture-required

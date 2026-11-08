@@ -2,27 +2,37 @@
 """Head-unit daemon: the bridge between the React shell and the system.
 
 The shell is a web page, so it cannot move windows or touch hardware. It talks
-to this daemon over a WebSocket instead. The daemon:
+to this daemon over a WebSocket instead.
 
-  * tracks Android Auto: OpenAuto shows phone video in an X11 window titled
-    "openauto-video" while a phone is connected, and closes it on disconnect;
-  * owns window placement through Sway IPC (swaymsg):
-      - layout "aa":   the video window floats at the top of the screen in a
-                       16:9 rectangle (AA_RECT); the shell's dock stays visible
-                       in the strip below it;
-      - layout "home": the video window is parked in Sway's scratchpad
-                       (hidden, but OpenAuto keeps the phone session alive);
-  * hides OpenAuto's own menu window ("MainWindow"), which the shell replaces;
-  * broadcasts state to every connected shell and accepts layout commands.
+App slot
+--------
+The screen has one "app slot": the 16:9 area at the top (SLOT_RECT). The shell
+(Chromium, the only tiled window) fills the screen behind it and keeps the dock
+in the strip below. The current layout is either "home" (slot empty) or the id
+of the app shown in the slot. Apps that are running but not shown are parked in
+Sway's scratchpad, so they keep running (phone session, video, login, ...).
 
-Protocol (JSON text frames on ws://localhost:8765):
-  daemon -> shell  {"type": "state", "aa": {"connected": bool},
-                    "layout": "home" | "aa", "aaRect": {x, y, width, height},
+Apps (APPS below):
+  * "aa"       Android Auto. OpenAuto opens an X11 window titled
+               "openauto-video" while a phone is connected and closes it on
+               disconnect. Not launched by us (aa-supervisor runs OpenAuto).
+  * web apps   e.g. "stremio": a Chromium --app window with its own profile,
+               launched on first use via hu-webapp, identified by its app_id.
+
+All other OpenAuto windows (its menu "MainWindow", "Warning" pop-ups) are hidden.
+
+Protocol (JSON text frames on ws://localhost:8765)
+--------------------------------------------------
+  daemon -> shell  {"type": "state",
+                    "layout": "home" | <app id>,
+                    "apps": {<id>: {"title": str, "running": bool}},
+                    "aa": {"connected": bool},                 (same as apps.aa.running)
+                    "aaRect": {x, y, width, height},           (the app slot)
                     "screen": {width, height}}
-  shell -> daemon  {"type": "setLayout", "layout": "home" | "aa"}
+  shell -> daemon  {"type": "setLayout", "layout": "home" | <app id>}
+                   Opening an app that is not running launches it first.
 
-Rectangles are in physical screen pixels (Sway runs at scale 1); the shell
-converts with window.devicePixelRatio.
+Rectangles are in physical screen pixels (Sway runs at scale 1).
 """
 import asyncio
 import json
@@ -32,27 +42,43 @@ import websockets
 
 HOST, PORT = "127.0.0.1", 8765
 SCREEN = {"width": 2880, "height": 1920}
-# Android Auto is 16:9; full width leaves a 300 px strip below for the dock.
-AA_RECT = {"x": 0, "y": 0, "width": 2880, "height": 1620}
-VIDEO_TITLE = "openauto-video"
+# 16:9 at full width leaves a 300 px strip below for the dock.
+SLOT_RECT = {"x": 0, "y": 0, "width": 2880, "height": 1620}
 AUTO_OPEN_AA = True   # switch to Android Auto when a phone connects
+
+APPS = {
+    "aa": {
+        "title": "Android Auto",
+        "match": lambda props, app_id, title: props.get("class") == "autoapp" and title == "openauto-video",
+        "launch": None,
+    },
+    "stremio": {
+        "title": "Stremio",
+        # Chromium --app windows get app_id "chrome-<host>__-<profile>".
+        "match": lambda props, app_id, title: (app_id or "").startswith("chrome-web.stremio.com"),
+        "launch": "hu-webapp stremio https://web.stremio.com/",
+    },
+}
 
 log = logging.getLogger("hu-daemon")
 
 
 class Daemon:
     def __init__(self):
-        self.video_con = None   # Sway container id of the Android Auto window
+        self.windows = {}        # app id -> Sway container id of its window
         self.layout = "home"
         self.clients = set()
+        self.launching = set()   # app ids launched but whose window has not appeared yet
 
     # ---------- state ----------
     def state(self):
         return {
             "type": "state",
-            "aa": {"connected": self.video_con is not None},
             "layout": self.layout,
-            "aaRect": AA_RECT,
+            "apps": {app: {"title": spec["title"], "running": app in self.windows}
+                     for app, spec in APPS.items()},
+            "aa": {"connected": "aa" in self.windows},
+            "aaRect": SLOT_RECT,
             "screen": SCREEN,
         }
 
@@ -74,32 +100,40 @@ class Daemon:
         if proc.returncode != 0:
             log.warning("swaymsg %r failed: %s", command, out.decode().strip())
 
+    async def place(self, app, con):
+        """Show one app's window in the slot."""
+        r = SLOT_RECT
+        command = (f"[con_id={con}] move to workspace current, floating enable, border none, "
+                   f"resize set {r['width']} {r['height']}, "
+                   f"move absolute position {r['x']} {r['y']}, focus")
+        # Apps (OpenAuto in particular) may resize themselves right after
+        # appearing, so re-apply the placement a few times while they settle.
+        for wait in (0, 0.5, 1.0, 1.5):          # applied at 0, 0.5, 1.5, 3 s
+            await asyncio.sleep(wait)
+            if self.windows.get(app) != con or self.layout != app:
+                return
+            await self.sway(command)
+
     async def apply_layout(self):
-        """Put the Android Auto window where the current layout wants it."""
-        con = self.video_con
-        if con is None:
-            return
-        if self.layout == "aa":
-            r = AA_RECT
-            place = (f"[con_id={con}] move to workspace current, floating enable, border none, "
-                     f"resize set {r['width']} {r['height']}, "
-                     f"move absolute position {r['x']} {r['y']}, focus")
-            # OpenAuto resizes its window to the full screen just after showing
-            # it, so re-apply the placement a few times while it settles.
-            for wait in (0, 0.5, 1.0, 1.5):          # applied at 0, 0.5, 1.5, 3 s
-                await asyncio.sleep(wait)
-                if self.video_con != con or self.layout != "aa":
-                    return
-                await self.sway(place)
-        else:
-            await self.sway(f"[con_id={con}] move scratchpad")
-            await self.sway("[tiling] focus")   # the shell (Chromium) is the only tiled window
+        for app, con in list(self.windows.items()):
+            if app != self.layout:
+                await self.sway(f"[con_id={con}] move scratchpad")
+        if self.layout == "home":
+            await self.sway("[tiling] focus")      # the shell (Chromium) is the only tiled window
+        elif self.layout in self.windows:
+            await self.place(self.layout, self.windows[self.layout])
 
     async def set_layout(self, layout):
-        if layout not in ("home", "aa"):
+        if layout != "home" and layout not in APPS:
             return
-        if layout == "aa" and self.video_con is None:
-            layout = "home"           # nothing to show without a phone
+        if layout != "home" and layout not in self.windows:
+            launch = APPS[layout]["launch"]
+            if launch is None:
+                layout = "home"                   # Android Auto: nothing to show without a phone
+            elif layout not in self.launching:
+                log.info("launching %s", layout)
+                self.launching.add(layout)
+                await self.sway(f"exec {launch}")
         self.layout = layout
         log.info("layout -> %s", layout)
         await self.broadcast()
@@ -107,24 +141,43 @@ class Daemon:
         # block the Sway event stream or other clients meanwhile.
         asyncio.create_task(self.apply_layout())
 
-    async def on_window(self, change, con):
+    def identify(self, con):
         props = con.get("window_properties") or {}
+        app_id = con.get("app_id")
         title = con.get("name") or props.get("title")
-        if props.get("class") != "autoapp":
+        for app, spec in APPS.items():
+            if spec["match"](props, app_id, title):
+                return app
+        if props.get("class") == "autoapp":
+            return "openauto-other"
+        return None
+
+    async def on_window(self, change, con):
+        app = self.identify(con)
+        if app is None:
             return
-        if title != VIDEO_TITLE and change in ("new", "title"):
-            # OpenAuto's own menu ("MainWindow"), its "Warning" pop-ups and any
-            # other window of it: the shell replaces all of these, keep them hidden.
-            if con.get("scratchpad_state", "none") == "none":
+        if app == "openauto-other":
+            # OpenAuto's menu ("MainWindow"), "Warning" pop-ups etc.: the shell replaces them.
+            if change in ("new", "title") and con.get("scratchpad_state", "none") == "none":
                 await self.sway(f"[con_id={con['id']}] move scratchpad")
-        elif title == VIDEO_TITLE and change in ("new", "title") and con["id"] != self.video_con:
-            log.info("Android Auto connected (window %s)", con["id"])
-            self.video_con = con["id"]
-            await self.set_layout("aa" if AUTO_OPEN_AA else self.layout)
-        elif change == "close" and con["id"] == self.video_con:
-            log.info("Android Auto disconnected")
-            self.video_con = None
-            await self.set_layout("home")
+            return
+
+        if change in ("new", "title") and self.windows.get(app) != con["id"]:
+            log.info("%s window appeared (%s)", app, con["id"])
+            self.windows[app] = con["id"]
+            self.launching.discard(app)
+            if app == "aa" and AUTO_OPEN_AA:
+                await self.set_layout("aa")
+            else:
+                await self.broadcast()
+                asyncio.create_task(self.apply_layout())
+        elif change == "close" and self.windows.get(app) == con["id"]:
+            log.info("%s window closed", app)
+            del self.windows[app]
+            if self.layout == app:
+                await self.set_layout("home")
+            else:
+                await self.broadcast()
 
     async def scan_existing(self):
         """Pick up windows that already exist when the daemon starts."""
@@ -138,7 +191,7 @@ class Daemon:
                 yield from walk(child)
 
         for node in walk(json.loads(out)):
-            if node.get("type") in ("con", "floating_con") and node.get("window_properties"):
+            if node.get("type") in ("con", "floating_con") and node.get("pid"):
                 await self.on_window("new", node)
 
     async def watch_sway(self):
@@ -168,6 +221,8 @@ class Daemon:
                     continue
                 if msg.get("type") == "setLayout":
                     await self.set_layout(msg.get("layout"))
+        except websockets.ConnectionClosed:
+            pass                                   # shell reloaded or went away
         finally:
             self.clients.discard(ws)
 

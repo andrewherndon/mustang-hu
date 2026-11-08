@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MOCK, useDaemon } from "./daemon";
+import { MOCK, useDaemon, type AppId } from "./daemon";
 import { Home } from "./components/Home";
 import { Dock } from "./components/Dock";
 import { DevBar } from "./components/DevBar";
@@ -35,7 +35,8 @@ export function App() {
   };
   const dockHeight = stageH - (aa.y + aa.height);
   const fit = useFitScale(stageW, stageH);
-  const aaVisible = state.layout === "aa" && state.aa.connected;
+  // Something occupies the slot: Android Auto or a web app (placed there by Sway).
+  const slotVisible = state.layout !== "home";
 
   return (
     <div className="viewport">
@@ -44,17 +45,18 @@ export function App() {
         data-layout={state.layout}
         style={{ width: stageW, height: stageH, transform: `scale(${fit})` }}
       >
-        {/* Area above the dock: the home screen, or the slot Android Auto is placed into. */}
+        {/* Area above the dock: the home screen, or the slot an app (Android Auto, Stremio) is placed into. */}
         <section className="main" style={{ height: aa.y + aa.height }}>
           <Home
-            hidden={aaVisible}
+            hidden={slotVisible}
             aaConnected={state.aa.connected}
-            onOpenAA={() => setLayout("aa")}
+            stremioRunning={state.apps.stremio.running}
+            onOpen={setLayout}
           />
-          {/* On the Surface the OpenAuto window covers this slot; in a desktop browser it is a placeholder. */}
-          <div className="aa-slot" aria-hidden={!aaVisible}
+          {/* On the Surface the app window covers this slot; in a desktop browser it is a placeholder. */}
+          <div className="aa-slot" aria-hidden={!slotVisible}
                style={{ left: aa.x, top: aa.y, width: aa.width, height: aa.height }}>
-            {MOCK && aaVisible && <span>Android Auto renders here</span>}
+            {MOCK && slotVisible && <span>{state.apps[state.layout as AppId].title} renders here</span>}
           </div>
         </section>
 
@@ -63,8 +65,7 @@ export function App() {
           layout={state.layout}
           aaConnected={state.aa.connected}
           online={online}
-          onHome={() => setLayout("home")}
-          onAA={() => setLayout("aa")}
+          onOpen={setLayout}
         />
       </div>
 

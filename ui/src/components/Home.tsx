@@ -1,14 +1,16 @@
 import { formatDate, formatMeridiem, formatTime, useClock } from "../useClock";
-import { CarIcon, MusicIcon, PhoneIcon } from "./icons";
+import type { Layout } from "../daemon";
+import { CarIcon, MusicIcon, PhoneIcon, PlayIcon } from "./icons";
 
 interface Props {
   hidden: boolean;
   aaConnected: boolean;
-  onOpenAA: () => void;
+  stremioRunning: boolean;
+  onOpen: (layout: Layout) => void;
 }
 
 /** Home screen: shown when Android Auto is closed or no phone is connected. */
-export function Home({ hidden, aaConnected, onOpenAA }: Props) {
+export function Home({ hidden, aaConnected, stremioRunning, onOpen }: Props) {
   const now = useClock();
 
   return (
@@ -23,7 +25,7 @@ export function Home({ hidden, aaConnected, onOpenAA }: Props) {
 
       <div className="home-cards">
         <button className="card card-aa" data-connected={aaConnected}
-                disabled={!aaConnected} onClick={onOpenAA}>
+                disabled={!aaConnected} onClick={() => onOpen("aa")}>
           <div className="card-icon">{aaConnected ? <CarIcon size={36} /> : <PhoneIcon size={36} />}</div>
           <div className="card-body">
             <div className="card-title">Android Auto</div>
@@ -32,6 +34,14 @@ export function Home({ hidden, aaConnected, onOpenAA }: Props) {
             </div>
           </div>
           <span className="status-dot" />
+        </button>
+
+        <button className="card card-stremio" onClick={() => onOpen("stremio")}>
+          <div className="card-icon"><PlayIcon size={36} /></div>
+          <div className="card-body">
+            <div className="card-title">Stremio</div>
+            <div className="card-sub">{stremioRunning ? "Running — tap to return" : "Movies & shows · when parked"}</div>
+          </div>
         </button>
 
         <div className="card card-media">

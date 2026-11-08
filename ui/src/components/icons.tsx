@@ -24,3 +24,6 @@ export const VolumeIcon = ({ size = 28 }: P) =>
 
 export const PhoneIcon = ({ size = 28 }: P) =>
   svg(size, <><rect x="6" y="2" width="12" height="20" rx="2.5" /><path d="M11 18h2" /></>);
+
+export const PlayIcon = ({ size = 28 }: P) =>
+  svg(size, <><rect x="2.5" y="4" width="19" height="16" rx="3" /><path d="m10 9 5 3-5 3z" /></>);
