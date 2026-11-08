@@ -1,0 +1,51 @@
+#!/bin/bash
+# Android (Waydroid) look-and-feel changes for the head unit. Every change has
+# an undo, so the stock LineageOS setup can always be restored.
+#
+#   hu-android-look lawnchair          install Lawnchair (pinned, checksum-verified) and make it home
+#   hu-android-look lawnchair-revert   back to the stock launcher (Trebuchet) and uninstall Lawnchair
+#   hu-android-look density <dpi>      UI scale (360 = like a 1280x720 tablet in the 2880x1620 slot)
+#   hu-android-look density-revert     back to Waydroid's default (180)
+#   hu-android-look status
+#
+# The stock launcher is never removed, so reverting is always possible.
+set -euo pipefail
+
+LAWNCHAIR_VERSION=v15.0.0-beta3.0
+LAWNCHAIR_URL="https://github.com/LawnchairLauncher/lawnchair/releases/download/$LAWNCHAIR_VERSION/Lawnchair.15.0.0.Beta.3.0.apk"
+LAWNCHAIR_SHA256=d4200d0985169fd79ba1bd225d653f2a2fe7b50aa07cb0d05ca64c7623f86059   # from the GitHub release
+LAWNCHAIR_HOME=app.lawnchair/.LawnchairLauncher
+STOCK_HOME=com.android.launcher3/.uioverrides.QuickstepLauncher
+APK_DIR="$HOME/android-apks"
+
+W() { sudo waydroid shell -- "$@"; }
+
+case "${1:-status}" in
+  lawnchair)
+    apk="$APK_DIR/lawnchair-$LAWNCHAIR_VERSION.apk"
+    mkdir -p "$APK_DIR"
+    [ -f "$apk" ] || curl -fsSL -o "$apk" "$LAWNCHAIR_URL"
+    echo "$LAWNCHAIR_SHA256  $apk" | sha256sum -c --quiet -
+    waydroid app install "$apk"
+    sleep 3
+    W cmd package set-home-activity "$LAWNCHAIR_HOME"
+    W input keyevent KEYCODE_HOME
+    ;;
+  lawnchair-revert)
+    W cmd package set-home-activity "$STOCK_HOME"
+    W pm uninstall app.lawnchair || true
+    W input keyevent KEYCODE_HOME
+    ;;
+  density)
+    W wm density "${2:?usage: hu-android-look density <dpi>}"
+    ;;
+  density-revert)
+    W wm density reset
+    ;;
+  status)
+    echo "home:    $(W cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME | tail -1)"
+    echo "density: $(W wm density | tr '\n' ' ')"
+    ;;
+  *)
+    sed -n '2,13p' "$0"; exit 1 ;;
+esac
