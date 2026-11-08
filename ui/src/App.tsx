@@ -3,6 +3,7 @@ import { MOCK, useDaemon, type AppId } from "./daemon";
 import { Home } from "./components/Home";
 import { Dock } from "./components/Dock";
 import { DevBar } from "./components/DevBar";
+import { Keyboard } from "./components/Keyboard";
 
 /**
  * Chromium on the Surface runs at --force-device-scale-factor=2, so the
@@ -27,7 +28,7 @@ function useFitScale(width: number, height: number) {
 }
 
 export function App() {
-  const { state, online, setLayout, toggleKeyboard, mockSetConnected } = useDaemon();
+  const { state, online, setLayout, setKeyboard, sendKey, mockTyped, mockSetConnected } = useDaemon();
   const stageW = state.screen.width / SCALE;
   const stageH = state.screen.height / SCALE;
   const aa = {
@@ -40,6 +41,9 @@ export function App() {
   const fit = useFitScale(stageW, stageH);
   // Something occupies the slot: Android Auto or a web app (placed there by Sway).
   const slotVisible = state.layout !== "home";
+  // While the keyboard is open it replaces the dock; the daemon shrinks the app above it.
+  const kbOpen = state.keyboard.open;
+  const kbHeight = state.keyboard.height / SCALE;
 
   return (
     <div className="viewport" data-mock={MOCK}>
@@ -49,7 +53,7 @@ export function App() {
         style={{ width: stageW, height: stageH, transform: `scale(${fit})` }}
       >
         {/* Area above the dock: the home screen, or the slot an app (Android Auto, Stremio) is placed into. */}
-        <section className="main" style={{ height: aa.y + aa.height }}>
+        <section className="main" style={{ height: kbOpen ? stageH - kbHeight : aa.y + aa.height }}>
           <Home
             hidden={slotVisible}
             aaConnected={state.aa.connected}
@@ -58,19 +62,26 @@ export function App() {
           />
           {/* On the Surface the app window covers this slot; in a desktop browser it is a placeholder. */}
           <div className="aa-slot" aria-hidden={!slotVisible}
-               style={{ left: aa.x, top: aa.y, width: aa.width, height: aa.height }}>
-            {MOCK && slotVisible && <span>{state.apps[state.layout as AppId].title} renders here</span>}
+               style={{ left: aa.x, top: aa.y, width: aa.width, height: kbOpen ? stageH - kbHeight : aa.height }}>
+            {MOCK && slotVisible && (
+              <span>{state.apps[state.layout as AppId].title} renders here{kbOpen && <> · typed: “{mockTyped}”</>}</span>
+            )}
           </div>
         </section>
 
-        <Dock
-          height={dockHeight}
-          layout={state.layout}
-          aaConnected={state.aa.connected}
-          online={online}
-          onOpen={setLayout}
-          onKeyboard={toggleKeyboard}
-        />
+        {kbOpen ? (
+          <Keyboard height={kbHeight} onKey={sendKey} onClose={() => setKeyboard(false)} />
+        ) : (
+          <Dock
+            height={dockHeight}
+            layout={state.layout}
+            aaConnected={state.aa.connected}
+            online={online}
+            keyboardAvailable={state.keyboard.available}
+            onOpen={setLayout}
+            onKeyboard={() => setKeyboard(true)}
+          />
+        )}
       </div>
 
       {MOCK && <DevBar connected={state.aa.connected} onConnected={mockSetConnected} />}

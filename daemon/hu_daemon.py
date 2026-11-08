@@ -27,13 +27,18 @@ Protocol (JSON text frames on ws://localhost:8765)
                     "layout": "home" | <app id>,
                     "apps": {<id>: {"title": str, "running": bool}},
                     "aa": {"connected": bool},                 (same as apps.aa.running)
-                    "aaRect": {x, y, width, height},           (the app slot)
+                    "aaRect": {x, y, width, height},           (the app slot, keyboard closed)
+                    "keyboard": {"open": bool, "available": bool, "height": int},
                     "screen": {width, height}}
   shell -> daemon  {"type": "setLayout", "layout": "home" | <app id>}
                    Opening an app that is not running launches it first.
-                   {"type": "toggleKeyboard"}
-                   Show/hide the on-screen keyboard (squeekboard), then give focus
-                   back to the app in the slot so typing goes there, not to the dock.
+                   {"type": "keyboard", "open": bool}
+                   The shell draws its own on-screen keyboard in the bottom
+                   KEYBOARD_HEIGHT px; the app in the slot is shrunk to the
+                   space above it. Only for web apps (Android Auto has its own).
+                   {"type": "key", "text": "a"}  or  {"type": "key", "key": "BackSpace"}
+                   Type into the app in the slot: focus it, then inject the key
+                   with wtype (keysym names for "key": BackSpace, Return, Tab, Left, ...).
 
 Rectangles are in physical screen pixels (Sway runs at scale 1).
 """
@@ -47,6 +52,9 @@ HOST, PORT = "127.0.0.1", 8765
 SCREEN = {"width": 2880, "height": 1920}
 # 16:9 at full width leaves a 300 px strip below for the dock.
 SLOT_RECT = {"x": 0, "y": 0, "width": 2880, "height": 1620}
+# The shell's keyboard panel replaces the dock and takes the bottom of the screen;
+# while it is open the app is resized to the space above it.
+KEYBOARD_HEIGHT = 760
 AUTO_OPEN_AA = True   # switch to Android Auto when a phone connects
 
 APPS = {
@@ -72,6 +80,8 @@ class Daemon:
         self.layout = "home"
         self.clients = set()
         self.launching = set()   # app ids launched but whose window has not appeared yet
+        self.keyboard = False
+        self.type_lock = asyncio.Lock()   # keeps injected keystrokes in order
 
     # ---------- state ----------
     def state(self):
@@ -82,8 +92,19 @@ class Daemon:
                      for app, spec in APPS.items()},
             "aa": {"connected": "aa" in self.windows},
             "aaRect": SLOT_RECT,
+            "keyboard": {"open": self.keyboard, "available": self.keyboard_available(),
+                         "height": KEYBOARD_HEIGHT},
             "screen": SCREEN,
         }
+
+    def keyboard_available(self):
+        """A keyboard makes sense for a web app shown in the slot."""
+        return self.layout in self.windows and APPS[self.layout]["launch"] is not None
+
+    def slot_rect(self):
+        if self.keyboard:
+            return {**SLOT_RECT, "height": SCREEN["height"] - KEYBOARD_HEIGHT}
+        return SLOT_RECT
 
     async def broadcast(self):
         message = json.dumps(self.state())
@@ -105,7 +126,7 @@ class Daemon:
 
     async def place(self, app, con):
         """Show one app's window in the slot."""
-        r = SLOT_RECT
+        r = self.slot_rect()
         command = (f"[con_id={con}] move to workspace current, floating enable, border none, "
                    f"resize set {r['width']} {r['height']}, "
                    f"move absolute position {r['x']} {r['y']}, focus")
@@ -138,6 +159,7 @@ class Daemon:
                 self.launching.add(layout)
                 await self.sway(f"exec {launch}")
         self.layout = layout
+        self.keyboard = False                     # the keyboard belongs to one app session
         log.info("layout -> %s", layout)
         await self.broadcast()
         # In the background: placement retries for a few seconds and must not
@@ -211,22 +233,35 @@ class Daemon:
             log.warning("sway subscription ended; retrying")
             await asyncio.sleep(2)
 
-    # ---------- on-screen keyboard (squeekboard, D-Bus sm.puri.OSK0) ----------
-    @staticmethod
-    async def busctl(*args):
-        proc = await asyncio.create_subprocess_exec(
-            "busctl", "--user", *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-        out, err = await proc.communicate()
-        if proc.returncode != 0:
-            log.warning("busctl %s failed: %s", args, err.decode().strip())
-        return out.decode().strip()
+    # ---------- on-screen keyboard (drawn by the shell, typed via wtype) ----------
+    async def set_keyboard(self, open_):
+        open_ = bool(open_) and self.keyboard_available()
+        if open_ == self.keyboard:
+            return
+        self.keyboard = open_
+        log.info("keyboard %s", "open" if open_ else "closed")
+        await self.broadcast()
+        asyncio.create_task(self.apply_layout())   # resize the app around the keyboard
 
-    async def toggle_keyboard(self):
-        osk = ("sm.puri.OSK0", "/sm/puri/OSK0", "sm.puri.OSK0")
-        visible = await self.busctl("get-property", *osk, "Visible") == "b true"
-        await self.busctl("call", *osk, "SetVisible", "b", "false" if visible else "true")
-        if self.layout in self.windows:
+    async def type_key(self, msg):
+        """Inject one key into the app in the slot.
+
+        Tapping the keyboard focuses the shell, so first hand focus back to the
+        app; Chromium keeps the caret in the text field it had focused."""
+        if not self.keyboard or self.layout not in self.windows:
+            return
+        if "text" in msg and isinstance(msg["text"], str) and msg["text"]:
+            args = ["--", msg["text"]]
+        elif isinstance(msg.get("key"), str) and msg["key"].isalnum():
+            args = ["-k", msg["key"]]
+        else:
+            return
+        async with self.type_lock:
             await self.sway(f"[con_id={self.windows[self.layout]}] focus")
+            proc = await asyncio.create_subprocess_exec("wtype", *args, stderr=asyncio.subprocess.PIPE)
+            _, err = await proc.communicate()
+            if proc.returncode != 0:
+                log.warning("wtype %s failed: %s", args, err.decode().strip())
 
     # ---------- websocket ----------
     async def handle_client(self, ws):
@@ -241,8 +276,10 @@ class Daemon:
                     continue
                 if msg.get("type") == "setLayout":
                     await self.set_layout(msg.get("layout"))
-                elif msg.get("type") == "toggleKeyboard":
-                    await self.toggle_keyboard()
+                elif msg.get("type") == "keyboard":
+                    await self.set_keyboard(msg.get("open"))
+                elif msg.get("type") == "key":
+                    await self.type_key(msg)
         except websockets.ConnectionClosed:
             pass                                   # shell reloaded or went away
         finally:

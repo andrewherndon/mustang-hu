@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { KeyPress } from "./components/Keyboard";
 
 /** Mirrors the daemon protocol (daemon/hu_daemon.py). Rects are physical pixels. */
 export type AppId = "aa" | "stremio";
@@ -11,6 +12,8 @@ export interface DaemonState {
   apps: Record<AppId, AppState>;
   layout: Layout;
   aaRect: Rect;
+  /** The shell's keyboard: open, allowed for the current app, height in physical px. */
+  keyboard: { open: boolean; available: boolean; height: number };
   screen: { width: number; height: number };
 }
 
@@ -25,6 +28,7 @@ export const DEFAULT_STATE: DaemonState = {
   },
   layout: "home",
   aaRect: { x: 0, y: 0, width: 2880, height: 1620 },
+  keyboard: { open: false, available: false, height: 760 },
   screen: { width: 2880, height: 1920 },
 };
 
@@ -69,18 +73,33 @@ export function useDaemon() {
   const setLayout = useCallback((layout: Layout) => {
     if (MOCK) {
       setState((s) => {
-        if (layout === "aa" && !s.aa.connected) return { ...s, layout: "home" };
-        if (layout === "home" || layout === "aa") return { ...s, layout };
+        const kb = { ...s.keyboard, open: false, available: layout !== "home" && layout !== "aa" };
+        if (layout === "aa" && !s.aa.connected) return { ...s, layout: "home", keyboard: { ...kb, available: false } };
+        if (layout === "home" || layout === "aa") return { ...s, layout, keyboard: kb };
         // Web apps "launch" on first open, like the real daemon.
-        return { ...s, layout, apps: { ...s.apps, [layout]: { ...s.apps[layout], running: true } } };
+        return { ...s, layout, keyboard: kb, apps: { ...s.apps, [layout]: { ...s.apps[layout], running: true } } };
       });
       return;
     }
     ws.current?.send(JSON.stringify({ type: "setLayout", layout }));
   }, []);
 
-  const toggleKeyboard = useCallback(() => {
-    if (!MOCK) ws.current?.send(JSON.stringify({ type: "toggleKeyboard" }));
+  const [mockTyped, setMockTyped] = useState("");
+
+  const setKeyboard = useCallback((open: boolean) => {
+    if (MOCK) {
+      setState((s) => ({ ...s, keyboard: { ...s.keyboard, open: open && s.keyboard.available } }));
+      return;
+    }
+    ws.current?.send(JSON.stringify({ type: "keyboard", open }));
+  }, []);
+
+  const sendKey = useCallback((k: KeyPress) => {
+    if (MOCK) {
+      setMockTyped((t) => ("text" in k ? t + k.text : k.key === "BackSpace" ? t.slice(0, -1) : t));
+      return;
+    }
+    ws.current?.send(JSON.stringify({ type: "key", ...k }));
   }, []);
 
   /** Mock only: simulate plugging the phone in or out (the daemon auto-opens AA). */
@@ -93,5 +112,5 @@ export function useDaemon() {
     }));
   }, []);
 
-  return { state, online, setLayout, toggleKeyboard, mockSetConnected };
+  return { state, online, setLayout, setKeyboard, sendKey, mockTyped, mockSetConnected };
 }
