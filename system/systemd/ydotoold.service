@@ -1,0 +1,13 @@
+[Unit]
+Description=ydotool daemon: kernel-level virtual keyboard for the head-unit's on-screen keyboard
+Documentation=man:ydotoold(8)
+
+[Service]
+# Needs root for /dev/uinput; the socket is handed to the desktop user (uid 1000)
+# so hu-daemon can type without sudo. Keyboard only: the mouse stays untouched.
+ExecStart=/usr/bin/ydotoold --mouse-off --socket-path=/run/ydotool/socket --socket-own=1000:1000 --socket-perm=0600
+RuntimeDirectory=ydotool
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

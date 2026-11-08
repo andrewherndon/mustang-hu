@@ -38,13 +38,14 @@ Protocol (JSON text frames on ws://localhost:8765)
                    space above it. Only for web apps (Android Auto has its own).
                    {"type": "key", "text": "a"}  or  {"type": "key", "key": "BackSpace"}
                    Type into the app in the slot: focus it, then inject the key
-                   with wtype (keysym names for "key": BackSpace, Return, Tab, Left, ...).
+                   with ydotool ("key": BackSpace, Return, Tab, Left, Right).
 
 Rectangles are in physical screen pixels (Sway runs at scale 1).
 """
 import asyncio
 import json
 import logging
+import os
 
 import websockets
 
@@ -55,6 +56,12 @@ SLOT_RECT = {"x": 0, "y": 0, "width": 2880, "height": 1620}
 # The shell's keyboard panel replaces the dock and takes the bottom of the screen;
 # while it is open the app is resized to the space above it.
 KEYBOARD_HEIGHT = 760
+
+# Keys are injected with ydotool: a kernel-level (uinput) virtual keyboard, so
+# every app sees ordinary key presses in the normal US layout. (wtype's
+# temporary per-character keymap broke punctuation in Chromium's own UI.)
+YDOTOOL_ENV = {**os.environ, "YDOTOOL_SOCKET": "/run/ydotool/socket"}
+KEYCODES = {"BackSpace": 14, "Tab": 15, "Return": 28, "Left": 105, "Right": 106}   # linux/input-event-codes.h
 AUTO_OPEN_AA = True   # switch to Android Auto when a phone connects
 
 def web_app(title, url, profile, host=None):
@@ -249,7 +256,7 @@ class Daemon:
             log.warning("sway subscription ended; retrying")
             await asyncio.sleep(2)
 
-    # ---------- on-screen keyboard (drawn by the shell, typed via wtype) ----------
+    # ---------- on-screen keyboard (drawn by the shell, typed via ydotool) ----------
     async def set_keyboard(self, open_):
         open_ = bool(open_) and self.keyboard_available()
         if open_ == self.keyboard:
@@ -266,18 +273,21 @@ class Daemon:
         app; Chromium keeps the caret in the text field it had focused."""
         if not self.keyboard or self.layout not in self.windows:
             return
-        if "text" in msg and isinstance(msg["text"], str) and msg["text"]:
-            args = ["--", msg["text"]]
-        elif isinstance(msg.get("key"), str) and msg["key"].isalnum():
-            args = ["-k", msg["key"]]
+        text, key = msg.get("text"), msg.get("key")
+        if isinstance(text, str) and text and text.isascii() and text.isprintable():
+            args = ["type", "--key-delay", "2", "--key-hold", "2", "--", text]
+        elif key in KEYCODES:
+            code = KEYCODES[key]
+            args = ["key", "--key-delay", "2", f"{code}:1", f"{code}:0"]
         else:
             return
         async with self.type_lock:
             await self.sway(f"[con_id={self.windows[self.layout]}] focus")
-            proc = await asyncio.create_subprocess_exec("wtype", *args, stderr=asyncio.subprocess.PIPE)
+            proc = await asyncio.create_subprocess_exec(
+                "ydotool", *args, env=YDOTOOL_ENV, stderr=asyncio.subprocess.PIPE)
             _, err = await proc.communicate()
             if proc.returncode != 0:
-                log.warning("wtype %s failed: %s", args, err.decode().strip())
+                log.warning("ydotool %s failed: %s", args, err.decode().strip())
 
     # ---------- websocket ----------
     async def handle_client(self, ws):

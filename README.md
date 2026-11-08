@@ -27,7 +27,7 @@ Sway (compositor, scale 1, 2880x1920 panel, no bar/borders)
 - Android Auto is a separate native window. It cannot be animated, clipped or drawn over by CSS;
   it appears/disappears instantly when the daemon moves it. Animate the shell around it instead.
 - **On-screen keyboard** (`ui/src/components/Keyboard.tsx`) replaces the dock when open; the daemon
-  shrinks the app above it to `screen.height - keyboard.height` and types keys into it with `wtype`.
+  shrinks the app above it to `screen.height - keyboard.height` and types keys into it with `ydotool`.
   Only offered for web apps (Android Auto has its own keyboard).
 - Touch-first: no hover states, large targets (≥ 80 px), no scrolling/zoom gestures (`touch-action: none`).
 - Must work offline (car): bundle fonts/assets, no CDNs at runtime.

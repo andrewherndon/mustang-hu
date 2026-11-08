@@ -16,6 +16,11 @@ sudo install -d /opt/headunit
 sudo rsync -a --delete /tmp/hu-deploy/daemon/ /opt/headunit/daemon/
 sudo install -m755 /tmp/hu-deploy/system/bin/* /usr/local/bin/
 sudo rm -f /usr/local/bin/aa-video-watch            # replaced by hu-daemon
+for unit in /tmp/hu-deploy/system/systemd/*.service; do
+  sudo install -m644 "$unit" /etc/systemd/system/
+done
+sudo systemctl daemon-reload
+sudo systemctl enable --now ydotoold.service >/dev/null 2>&1
 install -D -m644 /tmp/hu-deploy/system/sway/headunit.conf ~/.config/sway/headunit.conf
 
 # Main Sway config: drop the default status bar and earlier ad-hoc head-unit

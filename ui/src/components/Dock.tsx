@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { AppState, Layout } from "../daemon";
 import { appLook } from "../apps";
 import { formatTime, useClock } from "../useClock";
@@ -14,15 +15,41 @@ interface Props {
   onKeyboard: () => void;
 }
 
-/** Bottom strip below Android Auto; always visible, in every layout. */
+/** Running-app buttons that fit in the left column next to Home and Android Auto. */
+const MAX_RUNNING_IN_DOCK = 3;
+
+const rank = (recent: string[], id: string) => {
+  const i = recent.indexOf(id);
+  return i === -1 ? recent.length : i;
+};
+
+/** App ids, most recently shown first. */
+function useRecentApps(layout: Layout) {
+  const [recent, setRecent] = useState<string[]>([]);
+  useEffect(() => {
+    if (layout !== "home") setRecent((r) => [layout, ...r.filter((id) => id !== layout)]);
+  }, [layout]);
+  return recent;
+}
+
+/**
+ * Bottom strip below the app slot; always visible, in every layout.
+ * Three columns (left buttons | clock | right buttons) so the centred clock
+ * never overlaps the icons.
+ */
 export function Dock({ height, layout, aaConnected, apps, online, keyboardAvailable, onOpen, onKeyboard }: Props) {
-  // Quick switching: every web app that is running (launch new ones from Home).
-  const running = Object.entries(apps).filter(([id, app]) => id !== "aa" && app.running);
+  // Quick switching between running web apps (launch new ones from Home).
+  // Only the most recently used fit beside the clock; the rest stay on Home.
+  const recent = useRecentApps(layout);
+  const running = Object.entries(apps)
+    .filter(([id, app]) => id !== "aa" && app.running)
+    .sort(([a], [b]) => rank(recent, a) - rank(recent, b))
+    .slice(0, MAX_RUNNING_IN_DOCK);
   const now = useClock();
 
   return (
     <nav className="dock" style={{ height }}>
-      <div className="dock-group">
+      <div className="dock-group dock-left">
         <button className="dock-btn" data-active={layout === "home"} onClick={() => onOpen("home")} aria-label="Home">
           <HomeIcon />
         </button>
@@ -44,7 +71,7 @@ export function Dock({ height, layout, aaConnected, apps, online, keyboardAvaila
         <span className="dock-time">{formatTime(now)}</span>
       </div>
 
-      <div className="dock-group">
+      <div className="dock-group dock-right">
         {keyboardAvailable && (
           <button className="dock-btn" onClick={onKeyboard} aria-label="Keyboard"><KeyboardIcon /></button>
         )}

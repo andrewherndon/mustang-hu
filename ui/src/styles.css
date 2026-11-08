@@ -94,10 +94,12 @@ button.card:not(:disabled):active { transform: scale(0.98); background: var(--su
 
 /* ---------- dock ---------- */
 .dock {
-  position: relative; flex: none; display: flex; align-items: center; justify-content: space-between;
+  flex: none; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px;
   padding: 0 40px; background: var(--bg); border-top: 1px solid var(--line);
 }
-.dock-group { display: flex; align-items: center; gap: 12px; }
+.dock-group { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.dock-left { justify-content: flex-start; }
+.dock-right { justify-content: flex-end; }
 .dock-btn {
   position: relative; width: 96px; height: 96px; border-radius: 26px;
   display: grid; place-items: center; color: var(--text-dim);
@@ -110,7 +112,7 @@ button.card:not(:disabled):active { transform: scale(0.98); background: var(--su
   position: absolute; top: 22px; right: 22px; width: 10px; height: 10px; border-radius: 50%;
   background: var(--ok);
 }
-.dock-center { position: absolute; left: 50%; transform: translateX(-50%); }
+.dock-center { text-align: center; }
 .dock-time { font-size: 34px; font-weight: 500; font-variant-numeric: tabular-nums; opacity: 0; transition: opacity 200ms var(--ease); }
 .stage:not([data-layout="home"]) .dock-time { opacity: 1; }   /* home already shows a big clock */
 .daemon-dot { width: 8px; height: 8px; border-radius: 50%; background: #e5484d; margin-left: 8px; }
