@@ -1,0 +1,15 @@
+#!/bin/bash
+# Rebuild OpenAuto from ~/src/openauto in the aa-root container and install
+# exactly the package produced from the current git HEAD.
+set -euo pipefail
+cd "$HOME/src/openauto"
+rev=$(git rev-parse --short HEAD)
+[ -n "$(git status --porcelain -- src include CMakeLists.txt)" ] && rev="$rev.dirty"
+distrobox enter --root aa-root -- bash -c '
+  set -euo pipefail
+  cd ~/src/openauto
+  ./build.sh release --package --output-dir ~/src/out 2>&1 | grep -E "error|Built target autoapp$" || true
+  deb=$(ls -t build-release/openauto_*'"$rev"'_*arm64.deb | head -1)
+  sudo dpkg -i "$deb" >/dev/null
+  echo "installed $deb"
+  readlink /usr/bin/autoapp'

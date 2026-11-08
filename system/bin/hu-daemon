@@ -1,0 +1,7 @@
+#!/bin/bash
+# Start the head-unit daemon (restarts if it ever exits).
+while true; do
+  python3 /opt/headunit/daemon/hu_daemon.py
+  echo "hu-daemon exited ($?), restarting" >&2
+  sleep 2
+done

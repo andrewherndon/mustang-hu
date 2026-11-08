@@ -1,0 +1,8 @@
+#!/bin/bash
+# Restart OpenAuto. aa-supervisor (started by Sway) relaunches it once it exits.
+export SWAYSOCK=${SWAYSOCK:-$(ls /run/user/$(id -u)/sway-ipc.*.sock | head -1)}
+if ! pgrep -f aa-supervisor >/dev/null; then
+    swaymsg exec aa-supervisor >/dev/null
+    echo "started aa-supervisor"
+fi
+pkill -x autoapp && echo "OpenAuto restarting"

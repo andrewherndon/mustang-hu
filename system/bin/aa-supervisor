@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+"""Keep OpenAuto running and recover it after the phone is unplugged.
+
+- Runs aa-launch in a loop: if OpenAuto exits or crashes, it is started again.
+- Watches udev: when the phone leaves Android Auto (AOA) mode, i.e. it was
+  unplugged, OpenAuto is killed so the loop starts a fresh copy. Upstream
+  OpenAuto often hangs on its second connection; a fresh process never does.
+
+Started from the Sway config (exec aa-supervisor); aa-restart just kills autoapp.
+"""
+import subprocess, threading, time
+
+AOA_PRODUCTS = {"2d00", "2d01"}   # Google accessory-mode IDs every phone switches to
+
+def log(msg):
+    print(time.strftime("%H:%M:%S"), msg, flush=True)
+
+def run_openauto():
+    while True:
+        log("starting OpenAuto")
+        started = time.monotonic()
+        subprocess.run(["aa-launch"])
+        log("OpenAuto exited")
+        if time.monotonic() - started < 5:
+            time.sleep(3)                    # don't spin if it fails at startup
+
+def watch_usb():
+    mon = subprocess.Popen(["udevadm", "monitor", "--udev", "--property", "--subsystem-match=usb"],
+                           stdout=subprocess.PIPE, text=True)
+    event = {}
+    for line in mon.stdout:
+        line = line.strip()
+        if line:
+            if "=" in line:
+                k, v = line.split("=", 1)
+                event[k] = v
+            continue
+        if event.get("ACTION") == "remove" and event.get("DEVTYPE") == "usb_device":
+            vendor, product = (event.get("PRODUCT", "") + "//").split("/")[:2]
+            if vendor == "18d1" and product in AOA_PRODUCTS:
+                log("phone unplugged: restarting OpenAuto")
+                subprocess.run(["pkill", "-x", "autoapp"])
+        event = {}
+
+threading.Thread(target=watch_usb, daemon=True).start()
+run_openauto()

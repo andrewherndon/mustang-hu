@@ -1,0 +1,122 @@
+/* Design tokens — a neutral starting point to restyle freely. */
+:root {
+  --bg: #07080a;
+  --surface: #121418;
+  --surface-2: #1a1d23;
+  --line: rgba(255, 255, 255, 0.07);
+  --text: #f2f3f5;
+  --text-dim: #8b9099;
+  --accent: #4f8cff;
+  --ok: #3ddc84;
+  --radius: 28px;
+  --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+  font-family: "Inter Variable", system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; margin: 0; }
+html, body, #root { height: 100%; overflow: hidden; }
+body {
+  background: var(--bg);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;           /* no browser panning/zoom gestures in a kiosk */
+  cursor: default;
+}
+button {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0;
+  cursor: pointer; touch-action: manipulation;
+}
+button:disabled { cursor: default; }
+
+/* ---------- stage: fixed 1440x960 CSS px (the Surface at 2x) ---------- */
+.viewport { position: fixed; inset: 0; display: grid; place-items: center; background: #000; }
+.stage {
+  position: relative; overflow: hidden; background: var(--bg);
+  transform-origin: center; display: flex; flex-direction: column;
+}
+.main { position: relative; flex: none; }
+
+/* Slot Android Auto is placed into (by Sway on the Surface). Black so nothing
+   flashes behind the video while it is being placed. */
+.aa-slot {
+  position: absolute; background: #000; opacity: 0; pointer-events: none;
+  display: grid; place-items: center; color: var(--text-dim); font-size: 20px;
+  transition: opacity 180ms var(--ease);
+}
+.stage[data-layout="aa"] .aa-slot { opacity: 1; }
+
+/* ---------- home ---------- */
+.home {
+  position: absolute; inset: 0; padding: 64px 64px 40px;
+  display: grid; grid-template-columns: 1fr 560px; gap: 48px; align-items: center;
+  transition: opacity 220ms var(--ease), transform 320ms var(--ease);
+}
+.home[data-hidden="true"] { opacity: 0; transform: scale(0.98); pointer-events: none; }
+
+.home-clock .time {
+  font-size: 168px; font-weight: 250; letter-spacing: -0.04em; line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+}
+.home-clock .meridiem { font-size: 32px; font-weight: 500; color: var(--text-dim); margin-left: 16px; letter-spacing: 0; }
+.home-clock .date { margin-top: 24px; font-size: 28px; color: var(--text-dim); }
+
+.home-cards { display: flex; flex-direction: column; gap: 20px; }
+.card {
+  position: relative; display: flex; align-items: center; gap: 24px; text-align: left;
+  padding: 28px 32px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition: transform 160ms var(--ease), background 160ms var(--ease);
+}
+button.card:not(:disabled):active { transform: scale(0.98); background: var(--surface-2); }
+.card-icon {
+  width: 72px; height: 72px; flex: none; display: grid; place-items: center;
+  border-radius: 20px; background: var(--surface-2); color: var(--text-dim);
+}
+.card-title { font-size: 26px; font-weight: 600; }
+.card-sub { margin-top: 6px; font-size: 18px; color: var(--text-dim); }
+
+.card-aa[data-connected="true"] .card-icon { background: rgba(79, 140, 255, 0.14); color: var(--accent); }
+.card-aa .status-dot {
+  position: absolute; top: 28px; right: 28px; width: 12px; height: 12px; border-radius: 50%;
+  background: #3a3e45;
+}
+.card-aa[data-connected="true"] .status-dot { background: var(--ok); box-shadow: 0 0 16px var(--ok); }
+
+.card-stat { flex-direction: column; align-items: flex-start; gap: 4px; }
+.stat-value { font-size: 64px; font-weight: 300; letter-spacing: -0.03em; line-height: 1; }
+.stat-unit { font-size: 22px; color: var(--text-dim); margin-left: 10px; letter-spacing: 0; }
+
+/* ---------- dock ---------- */
+.dock {
+  position: relative; flex: none; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; background: var(--bg); border-top: 1px solid var(--line);
+}
+.dock-group { display: flex; align-items: center; gap: 12px; }
+.dock-btn {
+  position: relative; width: 96px; height: 96px; border-radius: 26px;
+  display: grid; place-items: center; color: var(--text-dim);
+  transition: background 160ms var(--ease), color 160ms var(--ease), transform 120ms var(--ease);
+}
+.dock-btn:not(:disabled):active { transform: scale(0.94); }
+.dock-btn[data-active="true"] { background: var(--surface-2); color: var(--text); }
+.dock-btn:disabled { opacity: 0.3; }
+.dock-badge {
+  position: absolute; top: 22px; right: 22px; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--ok);
+}
+.dock-center { position: absolute; left: 50%; transform: translateX(-50%); }
+.dock-time { font-size: 34px; font-weight: 500; font-variant-numeric: tabular-nums; opacity: 0; transition: opacity 200ms var(--ease); }
+.stage[data-layout="aa"] .dock-time { opacity: 1; }   /* home already shows a big clock */
+.daemon-dot { width: 8px; height: 8px; border-radius: 50%; background: #e5484d; margin-left: 8px; }
+.daemon-dot[data-online="true"] { background: transparent; }
+
+/* ---------- dev bar (mock mode only) ---------- */
+.devbar {
+  position: fixed; top: 12px; right: 12px; display: flex; gap: 10px; align-items: center;
+  padding: 8px 12px; border-radius: 12px; background: #222; font-size: 13px; color: #aaa; z-index: 10;
+}
+.devbar button { padding: 6px 10px; border-radius: 8px; background: #3a3a3a; color: #fff; }

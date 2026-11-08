@@ -1,0 +1,8 @@
+#!/bin/bash
+# Launch OpenAuto (rootful Debian container "aa-root") inside the Sway session.
+# Run by aa-supervisor; window placement is done by hu-daemon.
+#  QT_QPA_PLATFORM=xcb: run via XWayland (Qt5 video output needs X11).
+#  GST_PLUGIN_FEATURE_RANK: software H.264 (avdec) over the experimental v4l2 decoder.
+cd "$HOME"   # openauto.ini is read from the working directory
+exec distrobox enter --root aa-root -- env QT_QPA_PLATFORM=xcb \
+  GST_PLUGIN_FEATURE_RANK=v4l2h264dec:NONE,avdec_h264:MAX autoapp > "$HOME/autoapp.log" 2>&1

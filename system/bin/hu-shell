@@ -1,0 +1,21 @@
+#!/bin/bash
+# Run the React shell in Chromium as a borderless app window (not --kiosk:
+# a fullscreen window would cover the floating Android Auto window).
+#
+# URL: ~/.config/headunit/shell-url if present (during development this points
+# at the Vite dev server on the Mac over Tailscale), else the local build.
+url_file="$HOME/.config/headunit/shell-url"
+url=$(cat "$url_file" 2>/dev/null || echo "http://localhost:8080")
+
+pkill -f -- "--user-data-dir=$HOME/.config/hu-chromium" 2>/dev/null
+exec chromium \
+  --app="$url" \
+  --user-data-dir="$HOME/.config/hu-chromium" \
+  --ozone-platform=wayland \
+  --force-device-scale-factor=2 \
+  --touch-events=enabled \
+  --disable-pinch \
+  --overscroll-history-navigation=0 \
+  --noerrdialogs --disable-session-crashed-bubble --no-first-run \
+  --disable-features=TranslateUI \
+  --autoplay-policy=no-user-gesture-required
