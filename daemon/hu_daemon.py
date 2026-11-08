@@ -125,6 +125,7 @@ class Daemon:
         # splash window, close it and open the real one; that window should
         # still be shown even though the layout fell back to "home" meanwhile.
         self.wanted = (None, 0.0)
+        self.scanning = False    # picking up existing windows at startup (no auto-open)
         self.volume = {"level": 0.0, "muted": False}
         self.brightness = 1.0
         self.max_brightness = int(open(f"/sys/class/backlight/{BACKLIGHT}/max_brightness").read())
@@ -242,7 +243,7 @@ class Daemon:
             self.windows[app] = con["id"]
             self.launching.discard(app)
             wanted_app, wanted_at = self.wanted
-            if app == "aa" and AUTO_OPEN_AA:
+            if app == "aa" and AUTO_OPEN_AA and not self.scanning:
                 await self.set_layout("aa")
             elif app == wanted_app and time.monotonic() - wanted_at < 30 and self.layout == "home":
                 await self.set_layout(app)
@@ -270,9 +271,11 @@ class Daemon:
             for child in node.get("nodes", []) + node.get("floating_nodes", []):
                 yield from walk(child)
 
+        self.scanning = True      # a daemon restart is not a new phone connection
         for node in walk(json.loads(out)):
             if node.get("type") in ("con", "floating_con") and node.get("pid"):
                 await self.on_window("new", node)
+        self.scanning = False
 
     async def watch_sway(self):
         while True:
