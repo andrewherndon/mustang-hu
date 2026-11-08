@@ -3,9 +3,10 @@ import { useEffect, useRef } from "react";
 /**
  * Dithered, duotone light-beam background (WebGL).
  *
- * A soft field of slowly drifting diagonal light beams and glows is computed
+ * A soft field of slowly drifting shapes (a tapering slash, a sweeping arc, a
+ * wavy ribbon, a short steep slash and a glow) is computed
  * per pixel, then reduced to two tones with an ordered dither whose threshold
- * pattern is a tiny "x" in every 5x5 pixel cell: shadows stay solid dark,
+ * pattern is a tiny "x" in every 5x5-block cell (blocks of DOT pixels): shadows stay solid dark,
  * mid-tones become a fine grid of crosses that thickens as it brightens, and
  * highlights fill in. Rendered at the panel's native resolution so the
  * pattern is crisp, throttled to 30 fps (the motion is slow), and stopped
@@ -27,39 +28,75 @@ uniform vec2 res;
 uniform float t;
 uniform vec3 cBase, cMid, cHi;
 
-// Soft beam: 1 on a line through the screen at 'angle', fading over 'soft'.
-float beam(vec2 p, float angle, float offset, float width, float soft) {
-  vec2 n = vec2(cos(angle), sin(angle));
-  float d = abs(dot(p, n) - offset);
+// Soft profile: 1 within 'width' of a shape, fading to 0 over 'soft'.
+float soft(float d, float width, float soft) {
   return 1.0 - smoothstep(width, width + soft, d);
 }
 
-// Threshold for this pixel inside its 5x5 cell: lowest at the centre, then
-// along the two diagonals (the "x"), highest elsewhere.
+// Size of one pattern "pixel" in screen pixels: the x is drawn with 2x2
+// blocks, so each 5x5 cell is 10 px wide on the panel.
+const float DOT = 2.0;
+
+// 4x4 Bayer matrix value in [0, 1) without a lookup table.
+float bayer2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
+float bayer4(vec2 a) { return bayer2(0.5 * a) * 0.25 + bayer2(a); }
+
+// Threshold for this pattern pixel inside its 5x5 cell. The "x" (centre, then
+// the two diagonals) switches on first, so mid-tones show crosses; the other
+// 16 pixels follow, spread evenly by Bayer order so shading stays continuous.
 float threshold(vec2 frag) {
-  vec2 c = mod(floor(frag), 5.0);
+  vec2 c = mod(floor(frag / DOT), 5.0);
   float i = c.x, j = c.y;
   bool diag = (i == j) || (i + j == 4.0);
   float ring = max(abs(i - 2.0), abs(j - 2.0));      // 0 centre, 1, 2 outer
-  if (diag) return 0.10 + ring * 0.18;                 // 0.10 / 0.28 / 0.46
-  return 0.80 + 0.05 * mod(i + 2.0 * j, 4.0);          // fill only at the peaks, staggered
+  if (diag) return 0.05 + ring * 0.16;                 // 0.05 / 0.21 / 0.37
+  return 0.50 + 0.48 * bayer4(c) * (16.0 / 15.0);
+}
+
+// Distance from p to a straight line at 'angle' through 'offset' (along its
+// normal), and the position along it.
+vec2 line(vec2 p, float angle, float offset) {
+  vec2 n = vec2(cos(angle), sin(angle));
+  vec2 tg = vec2(-n.y, n.x);
+  return vec2(dot(p, n) - offset, dot(p, tg));
 }
 
 void main() {
-  vec2 p = gl_FragCoord.xy / res.y;                    // aspect-correct, y up
-  float a = -0.62;                                     // beam direction (diagonal, like the refs)
+  vec2 p = gl_FragCoord.xy / res.y;                    // aspect-correct, y up; x 0..1.5
   float v = 0.0;
-  v += 0.72 * beam(p, a + 0.04 * sin(t * 0.05), 0.62 + 0.10 * sin(t * 0.031), 0.05, 0.20);
-  v += 0.48 * beam(p, a - 0.03 + 0.03 * sin(t * 0.043 + 1.3), 1.08 + 0.14 * sin(t * 0.027 + 2.0), 0.015, 0.14);
-  v += 0.38 * beam(p, a + 0.06, 0.20 + 0.12 * sin(t * 0.037 + 4.0), 0.01, 0.18);
-  vec2 g = p - vec2(1.20 + 0.12 * sin(t * 0.02), 0.98 + 0.08 * cos(t * 0.025));
-  v += 0.32 * exp(-dot(g, g) * 4.0);                   // soft glow, upper right
+
+  // 1. Tapering diagonal slash: thin at one end, broad at the other.
+  vec2 l1 = line(p, -0.62 + 0.04 * sin(t * 0.05), 0.66 + 0.08 * sin(t * 0.031));
+  float w1 = 0.004 + 0.03 * smoothstep(-0.6, 0.9, l1.y);
+  v += 0.55 * soft(abs(l1.x), w1, 0.26);
+
+  // 2. Long arc curving up to the top right (edge of a huge circle).
+  vec2 c2 = vec2(0.2 + 0.06 * sin(t * 0.023), 2.6 + 0.05 * cos(t * 0.029));
+  float r2 = 2.2 + 0.04 * sin(t * 0.035);
+  v += 0.42 * soft(abs(length(p - c2) - r2), 0.01, 0.22);
+
+  // 3. Wavy ribbon low across the screen.
+  vec2 l3 = line(p, -0.18, 0.62 + 0.05 * sin(t * 0.04 + 1.0));
+  float wave = 0.07 * sin(l3.y * 3.5 + t * 0.12) + 0.03 * sin(l3.y * 8.0 - t * 0.07);
+  v += 0.38 * soft(abs(l3.x - wave), 0.012, 0.2);
+
+  // 4. Short steep slash, upper left, fading out at both ends.
+  vec2 g4 = p - vec2(0.30 + 0.04 * sin(t * 0.03), 0.80 + 0.04 * cos(t * 0.027));
+  vec2 l4 = line(g4, -1.05 + 0.03 * sin(t * 0.06 + 2.0), 0.0);
+  v += 0.50 * exp(-dot(g4, g4) * 7.0) * soft(abs(l4.x), 0.02, 0.16);
+
+  // 5. Faint glow, upper right.
+  vec2 g = p - vec2(1.30 + 0.10 * sin(t * 0.02), 0.90 + 0.08 * cos(t * 0.025));
+  v += 0.22 * exp(-dot(g, g) * 3.0);
   v = clamp(v, 0.0, 1.0);
 
-  float lit = step(threshold(gl_FragCoord.xy), smoothstep(0.04, 1.0, v));
-  vec3 smoothCol = mix(cBase, cMid, v * 0.45);         // blurred glow underneath
-  vec3 dotCol = mix(cMid, cHi, v * v);
-  gl_FragColor = vec4(mix(smoothCol, dotCol, lit * 0.9), 1.0);
+  // Multi-level ordered dither: brightness steps through LEVELS tones and the
+  // pattern above dithers between neighbouring tones (no flat blocks).
+  const float LEVELS = 9.0;
+  float q = min(floor(v * LEVELS + (1.0 - threshold(gl_FragCoord.xy))), LEVELS) / LEVELS;
+  vec3 col = mix(cBase, cMid, clamp(q / 0.55, 0.0, 1.0));
+  col = mix(col, cHi, clamp((q - 0.55) / 0.45, 0.0, 1.0));
+  gl_FragColor = vec4(col, 1.0);
 }`;
 
 /** OKLCH -> linear sRGB -> gamma sRGB (0..1), clamped. */
@@ -131,9 +168,9 @@ export function DitherBackdrop({ hue, running }: Props) {
     if (!g) return;
     const { ctx, prog } = g;
     const set = (name: string, c: [number, number, number]) => ctx.uniform3f(ctx.getUniformLocation(prog, name), ...c);
-    set("cBase", oklch(0.12, 0.02, hue));
-    set("cMid", oklch(0.34, 0.12, hue));
-    set("cHi", oklch(0.70, 0.15, hue + 8));
+    set("cBase", oklch(0.11, 0.02, hue));
+    set("cMid", oklch(0.36, 0.13, hue));
+    set("cHi", oklch(0.72, 0.15, hue + 8));
     draw.current = () => {
       ctx.uniform2f(ctx.getUniformLocation(prog, "res"), canvas.current!.width, canvas.current!.height);
       ctx.uniform1f(ctx.getUniformLocation(prog, "t"), (performance.now() - start.current) / 1000);
