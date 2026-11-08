@@ -5,6 +5,9 @@ import { Dock } from "./components/Dock";
 import { DevBar } from "./components/DevBar";
 import { Keyboard } from "./components/Keyboard";
 import { Controls } from "./components/Controls";
+import { Backdrop } from "./components/Backdrop";
+import { Appearance } from "./components/Appearance";
+import { useAppearance } from "./theme";
 
 /**
  * Chromium on the Surface runs at --force-device-scale-factor=2, so the
@@ -31,6 +34,8 @@ function useFitScale(width: number, height: number) {
 export function App() {
   const { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, mockTyped, mockSetConnected } = useDaemon();
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const { appearance, update: updateAppearance } = useAppearance();
   const stageW = state.screen.width / SCALE;
   const stageH = state.screen.height / SCALE;
   const aa = {
@@ -54,6 +59,7 @@ export function App() {
         data-layout={state.layout}
         style={{ width: stageW, height: stageH, transform: `scale(${fit})` }}
       >
+        <Backdrop />
         {/* Area above the dock: the home screen, or the slot an app (Android Auto, Stremio) is placed into. */}
         <section className="main" style={{ height: kbOpen ? stageH - kbHeight : aa.y + aa.height }}>
           <Home
@@ -62,6 +68,9 @@ export function App() {
             apps={state.apps}
             onOpen={setLayout}
           />
+          {appearanceOpen && state.layout === "home" && (
+            <Appearance appearance={appearance} onChange={updateAppearance} onClose={() => setAppearanceOpen(false)} />
+          )}
           {/* On the Surface the app window covers this slot; in a desktop browser it is a placeholder. */}
           <div className="aa-slot" aria-hidden={!slotVisible}
                style={{ left: aa.x, top: aa.y, width: aa.width, height: kbOpen ? stageH - kbHeight : aa.height }}>
@@ -94,6 +103,10 @@ export function App() {
             onOpen={setLayout}
             onKeyboard={() => setKeyboard(true)}
             onControls={() => setControlsOpen(true)}
+            onSettings={() => {
+              setLayout("home");
+              setAppearanceOpen(true);
+            }}
             volume={state.volume}
           />
         )}
