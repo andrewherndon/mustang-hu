@@ -34,6 +34,7 @@ export const DEFAULT_STATE: DaemonState = {
     calendar: { title: "Calendar", running: false },
     chess: { title: "Chess.com", running: false },
     "chess-offline": { title: "Chess", running: false },
+    gomoku: { title: "Five in a Row", running: false },
     android: { title: "Android", running: false },
     browser: { title: "Chrome", running: false },
   },

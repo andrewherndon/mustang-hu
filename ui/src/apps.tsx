@@ -14,6 +14,7 @@ const ICONS: Record<string, string> = {
   calendar: "/icons/calendar.png",
   chess: "/icons/chess.png",
   "chess-offline": "/icons/chess-offline.svg",
+  gomoku: "/icons/gomoku.svg",
   android: "/icons/android.png",
   browser: "/icons/chrome.png",
 };

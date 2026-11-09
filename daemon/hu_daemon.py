@@ -104,6 +104,8 @@ APPS = {
     "chess": web_app("Chess.com", "https://www.chess.com/play", "chess"),
     # Offline chess vs Stockfish (ui/chess/), served by hu-ui-server on the Surface.
     "chess-offline": web_app("Chess", "http://localhost:8080/chess/", "chess-offline"),
+    # Five in a row (gomoku), offline too (ui/gomoku/).
+    "gomoku": web_app("Five in a Row", "http://localhost:8080/gomoku/", "gomoku"),
     # Android apps (Google Maps, ...) in Waydroid, GPU-accelerated; one window for all of Android.
     "android": {
         "title": "Android",
