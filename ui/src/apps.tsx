@@ -13,6 +13,7 @@ const ICONS: Record<string, string> = {
   gmail: "/icons/gmail.png",
   calendar: "/icons/calendar.png",
   chess: "/icons/chess.png",
+  "chess-offline": "/icons/chess-offline.svg",
   android: "/icons/android.png",
   browser: "/icons/chrome.png",
 };

@@ -73,7 +73,10 @@ if SWAYSOCK=$(ls /run/user/$(id -u)/sway-ipc.*.sock 2>/dev/null | head -1) && [ 
   pkill -f /opt/headunit/daemon/hu_daemon.py || true          # hu-daemon's loop restarts it
   pgrep -f "bin/hu-daemon" >/dev/null || swaymsg exec "hu-daemon > /tmp/hu-daemon.log 2>&1" >/dev/null
   pgrep -f aa-supervisor >/dev/null || swaymsg exec "aa-supervisor > /tmp/aa-supervisor.log 2>&1" >/dev/null
-  pgrep -f "[h]ttp.server 8080" >/dev/null || swaymsg exec "hu-ui-server > /tmp/hu-ui-server.log 2>&1" >/dev/null
+  pkill -f "[h]ttp.server 8080" || true                          # old one-liner server
+  pkill -f "[b]in/hu-ui-server" || true
+  swaymsg exec "hu-ui-server > /tmp/hu-ui-server.log 2>&1" >/dev/null
+  sleep 0.5
   swaymsg exec "hu-shell > /tmp/hu-shell.log 2>&1" >/dev/null
 fi
 echo "deployed"

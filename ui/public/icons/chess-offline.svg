@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Offline chess: a knight on a two-tone board corner -->
+  <rect x="6" y="38" width="13" height="13" rx="2" fill="#6b7a8f"/>
+  <rect x="19" y="38" width="13" height="13" rx="2" fill="#d9dee6"/>
+  <rect x="32" y="38" width="13" height="13" rx="2" fill="#6b7a8f"/>
+  <rect x="45" y="38" width="13" height="13" rx="2" fill="#d9dee6"/>
+  <path d="M22 44 C22 34 26 30 27 24 L22 26 C19 27 16 24 18 21 L27 11 C30 8 34 7 37 8 C46 11 49 22 46 33 C45 37 44 41 44 44 Z" fill="#1d222b"/>
+  <circle cx="33" cy="15.5" r="1.8" fill="#d9dee6"/>
+  <rect x="18" y="43" width="30" height="5" rx="2.5" fill="#1d222b"/>
+</svg>

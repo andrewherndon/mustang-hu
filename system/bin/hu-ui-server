@@ -1,3 +1,24 @@
-#!/bin/bash
-# Serve the built React shell (installed to /opt/headunit/ui by deploy.sh) locally.
-exec python3 -m http.server 8080 --bind 127.0.0.1 --directory /opt/headunit/ui
+#!/usr/bin/env python3
+"""Serve the built React shell and its pages (installed to /opt/headunit/ui by
+deploy.sh) on localhost:8080.
+
+Sends "Cache-Control: no-cache" so Chromium always revalidates: after a deploy
+the new index.html (and its new hashed assets) load instead of a cached copy.
+"""
+import functools
+import http.server
+
+ROOT = "/opt/headunit/ui"
+
+
+class Handler(http.server.SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
+    def log_message(self, *args):
+        pass                                   # quiet: one line per asset is noise
+
+
+server = http.server.ThreadingHTTPServer(("127.0.0.1", 8080), functools.partial(Handler, directory=ROOT))
+server.serve_forever()

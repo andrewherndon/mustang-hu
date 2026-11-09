@@ -75,12 +75,17 @@ POLL_SECONDS = 1.0
 KEYCODES = {"BackSpace": 14, "Tab": 15, "Return": 28, "Left": 105, "Right": 106}   # linux/input-event-codes.h
 AUTO_OPEN_AA = True   # switch to Android Auto when a phone connects
 
-def web_app(title, url, profile, host=None):
-    """A Chromium --app window; its app_id is "chrome-<host>__-<profile dir>"."""
-    host = host or url.split("/")[2]
+def web_app(title, url, profile):
+    """A Chromium --app window. Its app_id is "chrome-<host>__<path>-<profile>",
+    with "/" in the path turned into "_" and no port (e.g. www.chess.com/play
+    -> "chrome-www.chess.com__play-Default"), so match on host and path."""
+    rest = url.split("://", 1)[1]
+    host, _, path = rest.partition("/")
+    host = host.split(":")[0]                    # Chromium leaves the port out
+    prefix = f"chrome-{host}__{path.replace('/', '_')}"
     return {
         "title": title,
-        "match": lambda props, app_id, t, host=host: (app_id or "").startswith(f"chrome-{host}__"),
+        "match": lambda props, app_id, t, prefix=prefix: (app_id or "").startswith(prefix),
         "launch": f"hu-webapp {profile} {url}",
     }
 
@@ -96,7 +101,9 @@ APPS = {
     "youtube": web_app("YouTube", "https://www.youtube.com/", "google"),
     "gmail": web_app("Gmail", "https://mail.google.com/", "google"),
     "calendar": web_app("Calendar", "https://calendar.google.com/", "google"),
-    "chess": web_app("Chess", "https://www.chess.com/play", "chess"),
+    "chess": web_app("Chess.com", "https://www.chess.com/play", "chess"),
+    # Offline chess vs Stockfish (ui/chess/), served by hu-ui-server on the Surface.
+    "chess-offline": web_app("Chess", "http://localhost:8080/chess/", "chess-offline"),
     # Android apps (Google Maps, ...) in Waydroid, GPU-accelerated; one window for all of Android.
     "android": {
         "title": "Android",

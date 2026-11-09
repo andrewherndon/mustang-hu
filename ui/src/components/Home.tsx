@@ -12,7 +12,7 @@ interface Props {
 }
 
 /** Home screen order (apps not listed here follow, in the daemon's order). */
-const ORDER = ["aa", "youtube", "stremio", "gmail", "calendar", "android", "chess", "browser"];
+const ORDER = ["aa", "youtube", "stremio", "gmail", "calendar", "android", "chess-offline", "chess", "browser"];
 
 /** Home: clock and now playing on the left, the apps as large icons on the right. */
 export function Home({ hidden, motion, aaConnected, apps, onOpen }: Props) {
