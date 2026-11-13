@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { formatDate, formatTime, useClock } from "../useClock";
 import { ANDROID_ICON_BASE, type AndroidApp, type AppState, type Layout, type Media, type MediaAction } from "../daemon";
 import { AppIcon } from "../apps";
@@ -24,6 +24,41 @@ interface Props {
 /** Home screen order for Linux apps (apps not listed here follow, in the daemon's order). */
 const ORDER = ["aa", "youtube", "stremio", "gmail", "calendar", "android", "chess-offline", "gomoku", "chess", "browser"];
 
+/**
+ * Tap-vs-scroll guard for the scrolling app grid. A press only opens an app if
+ * the finger stayed put (< 10 px), the grid did not scroll during the press,
+ * and the grid was not still gliding from a previous flick when touched
+ * (touching to stop a fling must not open whatever is under the finger).
+ * Attach the returned props to the grid; clicks it rejects never reach the apps.
+ */
+function useTapGuard() {
+  const ref = useRef<HTMLDivElement>(null);
+  const press = useRef<{ x: number; y: number; scrollTop: number; blocked: boolean } | null>(null);
+  const lastScroll = useRef(0);
+  return {
+    ref,
+    onScroll: () => { lastScroll.current = performance.now(); },
+    onPointerDown: (e: React.PointerEvent) => {
+      press.current = {
+        x: e.clientX, y: e.clientY, scrollTop: ref.current?.scrollTop ?? 0,
+        blocked: performance.now() - lastScroll.current < 250,      // was still moving
+      };
+    },
+    onPointerMove: (e: React.PointerEvent) => {
+      const p = press.current;
+      if (p && Math.hypot(e.clientX - p.x, e.clientY - p.y) > 10) p.blocked = true;
+    },
+    onClickCapture: (e: React.MouseEvent) => {
+      const p = press.current;
+      press.current = null;
+      if (!p || p.blocked || Math.abs((ref.current?.scrollTop ?? 0) - p.scrollTop) > 2) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    },
+  };
+}
+
 type Source = "linux" | "android";
 const SOURCE_KEY = "hu.appSource";
 
@@ -47,6 +82,7 @@ export function Home({ hidden, motion, aaConnected, apps, androidApps, media, on
   const [source, setSource] = useSource();
   const [intro, setIntro] = useState(() => !introShown);
   const endIntro = useCallback(() => { introShown = true; setIntro(false); }, []);
+  const tapGuard = useTapGuard();
   const ids = [...ORDER.filter((id) => apps[id]), ...Object.keys(apps).filter((id) => !ORDER.includes(id))];
 
   return (
@@ -75,7 +111,7 @@ export function Home({ hidden, motion, aaConnected, apps, androidApps, media, on
         </div>
 
         {source === "linux" ? (
-          <div className="app-grid">
+          <div className="app-grid" {...tapGuard}>
             {ids.map((id) => {
               const app = apps[id];
               const disabled = id === "aa" && !aaConnected;
@@ -90,7 +126,7 @@ export function Home({ hidden, motion, aaConnected, apps, androidApps, media, on
             })}
           </div>
         ) : (
-          <div className="app-grid">
+          <div className="app-grid" {...tapGuard}>
             {androidApps.length === 0 && <div className="apps-empty">No Android apps found</div>}
             {androidApps.map((a) => (
               <button key={a.pkg} className="app" onClick={() => onLaunchAndroid(a.pkg)}>
