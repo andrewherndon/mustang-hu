@@ -167,7 +167,7 @@ button:disabled { cursor: default; }
 .np-title { font-size: 22px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .np-text { flex: 1; min-width: 0; }
 .np-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.np-art-app { display: grid; place-items: center; background: #fff; }
+.np-art-app { display: grid; place-items: center; background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); }
 .np-art-app img { width: 70%; height: 70%; object-fit: contain; }
 .np-controls { display: flex; align-items: center; gap: 4px; flex: none; }
 .np-controls button {
@@ -205,13 +205,17 @@ button:disabled { cursor: default; }
   background: rgba(255, 255, 255, 0.85); box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.35); }
 .app-badge-live { background: var(--ok); box-shadow: 0 0 14px var(--ok), 0 0 0 3px rgba(0, 0, 0, 0.35); }
 
-/* App icon: official artwork on a white rounded tile */
+/* App icon: official artwork on a frosted dark-glass tile */
 .app-icon {
-  display: grid; place-items: center; flex: none; overflow: hidden;
-  background: #fff; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  display: grid; place-items: center; flex: none; overflow: hidden; position: relative;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04));
+  backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.18),
+              0 12px 30px rgba(0, 0, 0, 0.35);
 }
-.app-icon img { width: 66%; height: 66%; object-fit: contain; pointer-events: none; }
-.app-icon b { color: #333; font-weight: 700; }
+.app-icon img { width: 62%; height: 62%; object-fit: contain; pointer-events: none;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35)); }
+.app-icon b { color: #fff; font-weight: 700; }
 .dock-app .app-icon { box-shadow: none; }
 .dock-app { opacity: 0.85; }
 .dock-app[data-active="true"] { opacity: 1; }
