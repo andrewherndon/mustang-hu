@@ -31,6 +31,8 @@ Protocol (JSON text frames on ws://localhost:8765)
                     "keyboard": {"open": bool, "available": bool, "height": int},
                     "volume": {"level": 0..1, "muted": bool},     (default PipeWire output)
                     "brightness": 0..1,                          (panel backlight)
+                    "androidApps": [{pkg, title, icon}],          (installed in Waydroid)
+                    "media": {source, package, app, title, artist, album, playing} | null,
                     "screen": {width, height}}
   shell -> daemon  {"type": "setLayout", "layout": "home" | <app id>}
                    Opening an app that is not running launches it first.
@@ -43,6 +45,10 @@ Protocol (JSON text frames on ws://localhost:8765)
                    with ydotool ("key": BackSpace, Return, Tab, Left, Right).
                    {"type": "setVolume", "level": 0..1} / {"type": "setMute", "muted": bool}
                    {"type": "setBrightness", "level": 0..1}
+                   {"type": "launchAndroid", "pkg": "com.google.android.youtube"}
+                   Start Android if needed, open the app and show Android in the slot.
+                   {"type": "media", "action": "play-pause" | "next" | "previous"}
+                   Control whatever Android is playing (Spotify, YouTube, ...).
 Volume and brightness are also polled, so changes from the hardware volume
 buttons (bound in Sway) reach the shell.
 
@@ -71,6 +77,13 @@ YDOTOOL_ENV = {**os.environ, "YDOTOOL_SOCKET": "/run/ydotool/socket"}
 BACKLIGHT = "backlight"            # /sys/class/backlight/<name>
 MIN_BRIGHTNESS = 0.03              # never let the screen go fully dark
 POLL_SECONDS = 1.0
+
+# Android (Waydroid): installed apps come from the .desktop shortcuts Waydroid
+# writes for every app; their icons are served by hu-ui-server at /android-icons/.
+ANDROID_DESKTOP_DIR = os.path.expanduser("~/.local/share/applications")
+ANDROID_HIDDEN = {"com.android.documentsui", "com.android.gallery3d", "org.lineageos.jelly",
+                  "org.lineageos.recorder", "org.lineageos.etar", "com.android.contacts"}
+ANDROID_POLL_SECONDS = 2.0
 
 KEYCODES = {"BackSpace": 14, "Tab": 15, "Return": 28, "Left": 105, "Right": 106}   # linux/input-event-codes.h
 AUTO_OPEN_AA = True   # switch to Android Auto when a phone connects
@@ -139,6 +152,8 @@ class Daemon:
         self.brightness = 1.0
         self.max_brightness = int(open(f"/sys/class/backlight/{BACKLIGHT}/max_brightness").read())
         self.type_lock = asyncio.Lock()   # keeps injected keystrokes in order
+        self.android_apps = []            # [{"pkg", "title", "icon"}]
+        self.media = None                 # what Android is playing, if anything
 
     # ---------- state ----------
     def state(self):
@@ -153,6 +168,8 @@ class Daemon:
                          "height": KEYBOARD_HEIGHT},
             "volume": self.volume,
             "brightness": self.brightness,
+            "androidApps": self.android_apps,
+            "media": self.media,
             "screen": SCREEN,
         }
 
@@ -387,6 +404,101 @@ class Daemon:
                 log.exception("polling volume/brightness failed")
             await asyncio.sleep(POLL_SECONDS)
 
+    # ---------- Android apps and media (Waydroid) ----------
+    @staticmethod
+    def read_android_apps():
+        apps = []
+        try:
+            names = sorted(os.listdir(ANDROID_DESKTOP_DIR))
+        except FileNotFoundError:
+            return apps
+        for name in names:
+            if not (name.startswith("waydroid.") and name.endswith(".desktop")):
+                continue
+            pkg = name[len("waydroid."):-len(".desktop")]
+            if pkg in ANDROID_HIDDEN:
+                continue
+            title = pkg
+            with open(os.path.join(ANDROID_DESKTOP_DIR, name), errors="replace") as f:
+                for line in f:
+                    if line.startswith("Name="):
+                        title = line[5:].strip()
+                        break
+            apps.append({"pkg": pkg, "title": title, "icon": f"/android-icons/{pkg}.png"})
+        return sorted(apps, key=lambda a: a["title"].lower())
+
+    async def android_shell(self, *args, timeout=8):
+        proc = await asyncio.create_subprocess_exec(
+            "sudo", "-n", "waydroid", "shell", "--", *args,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
+        try:
+            out, _ = await asyncio.wait_for(proc.communicate(), timeout)
+        except asyncio.TimeoutError:
+            proc.kill()
+            return ""
+        return out.decode(errors="replace")
+
+    def parse_media(self, dump):
+        """Pick the playing (else most recently active) session from `dumpsys media_session`."""
+        sessions, cur = [], None
+        for raw in dump.splitlines():
+            line = raw.strip()
+            if line.startswith("package="):
+                cur = {"package": line[8:], "state": None, "description": None, "active": False}
+                sessions.append(cur)
+            elif cur is None:
+                continue
+            elif line.startswith("active="):
+                cur["active"] = line.endswith("true")
+            elif line.startswith("state=PlaybackState {state="):
+                cur["state"] = int(line.split("state=")[2].split(",")[0])
+            elif line.startswith("metadata:") and "description=" in line:
+                cur["description"] = line.split("description=", 1)[1]
+        sessions = [x for x in sessions if x["description"] and x["description"] != "null"]
+        if not sessions:
+            return None
+        x = sorted(sessions, key=lambda x: (x["state"] != 3, not x["active"]))[0]   # 3 = STATE_PLAYING
+        parts = [p.strip() for p in x["description"].split(",")]
+        titles = {a["pkg"]: a["title"] for a in self.android_apps}
+        return {"source": "android", "package": x["package"], "app": titles.get(x["package"], x["package"]),
+                "title": parts[0], "artist": parts[1] if len(parts) > 1 else "",
+                "album": parts[2] if len(parts) > 2 else "", "playing": x["state"] == 3}
+
+    async def poll_android(self):
+        while True:
+            try:
+                apps = self.read_android_apps()
+                media = None
+                if "android" in self.windows:
+                    media = self.parse_media(await self.android_shell("dumpsys", "media_session"))
+                if apps != self.android_apps or media != self.media:
+                    self.android_apps, self.media = apps, media
+                    await self.broadcast()
+            except Exception:
+                log.exception("polling Android failed")
+            await asyncio.sleep(ANDROID_POLL_SECONDS)
+
+    async def launch_android(self, pkg):
+        """Open an Android app: start Android if needed, then show it in the slot."""
+        if not any(a["pkg"] == pkg for a in self.android_apps):
+            return
+        if "android" not in self.windows:
+            await self.set_layout("android")              # starts Waydroid (hu-android)
+            for _ in range(120):                           # first boot can take ~20 s
+                if "android" in self.windows:
+                    break
+                await asyncio.sleep(0.5)
+            await asyncio.sleep(2)
+        await self.cmd("waydroid", "app", "launch", pkg)
+        await self.set_layout("android")
+
+    async def media_control(self, action):
+        if action in ("play-pause", "next", "previous") and "android" in self.windows:
+            await self.android_shell("cmd", "media_session", "dispatch", action)
+            await asyncio.sleep(0.4)
+            self.media = self.parse_media(await self.android_shell("dumpsys", "media_session"))
+            await self.broadcast()
+
     # ---------- websocket ----------
     async def handle_client(self, ws):
         self.clients.add(ws)
@@ -408,6 +520,10 @@ class Daemon:
                     await self.set_volume(msg["level"])
                 elif msg.get("type") == "setMute":
                     await self.set_mute(bool(msg.get("muted")))
+                elif msg.get("type") == "launchAndroid" and isinstance(msg.get("pkg"), str):
+                    asyncio.create_task(self.launch_android(msg["pkg"]))
+                elif msg.get("type") == "media":
+                    await self.media_control(msg.get("action"))
                 elif msg.get("type") == "setBrightness" and isinstance(msg.get("level"), (int, float)):
                     await self.set_brightness(msg["level"])
         except websockets.ConnectionClosed:
@@ -419,6 +535,8 @@ class Daemon:
         await self.scan_existing()
         await self.refresh_controls()
         asyncio.create_task(self.poll_controls())
+        self.android_apps = self.read_android_apps()
+        asyncio.create_task(self.poll_android())
         async with websockets.serve(self.handle_client, HOST, PORT):
             log.info("listening on ws://%s:%d", HOST, PORT)
             await self.watch_sway()

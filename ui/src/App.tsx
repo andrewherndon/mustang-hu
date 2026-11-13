@@ -32,7 +32,7 @@ function useFitScale(width: number, height: number) {
 }
 
 export function App() {
-  const { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, mockTyped, mockSetConnected } = useDaemon();
+  const { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, launchAndroid, mediaControl, mockTyped, mockSetConnected } = useDaemon();
   const [controlsOpen, setControlsOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const { appearance, update: updateAppearance } = useAppearance();
@@ -67,7 +67,11 @@ export function App() {
             motion={appearance.motion}
             aaConnected={state.aa.connected}
             apps={state.apps}
+            androidApps={state.androidApps}
+            media={state.media}
             onOpen={setLayout}
+            onLaunchAndroid={launchAndroid}
+            onMedia={mediaControl}
           />
           {appearanceOpen && state.layout === "home" && (
             <Appearance appearance={appearance} onChange={updateAppearance} onClose={() => setAppearanceOpen(false)} />

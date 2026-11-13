@@ -164,14 +164,36 @@ button:disabled { cursor: default; }
 }
 .np-art { width: 88px; height: 88px; border-radius: 16px; flex: none;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)); }
-.np-title { font-size: 22px; font-weight: 600; }
+.np-title { font-size: 22px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-text { flex: 1; min-width: 0; }
+.np-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-art-app { display: grid; place-items: center; background: #fff; }
+.np-art-app img { width: 70%; height: 70%; object-fit: contain; }
+.np-controls { display: flex; align-items: center; gap: 4px; flex: none; }
+.np-controls button {
+  width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; color: #fff;
+  transition: transform 120ms var(--ease), background 120ms var(--ease);
+}
+.np-controls button:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.1); }
+.np-controls .np-play { width: 68px; height: 68px; border-radius: 50%; background: rgba(255, 255, 255, 0.92); color: #111; }
 .np-sub { margin-top: 4px; font-size: 17px; color: rgba(255, 255, 255, 0.6); }
 
-/* Apps: large icons in a grid on the right */
-.app-grid {
-  flex: none; align-self: center; display: grid; grid-template-columns: repeat(4, 150px);
-  column-gap: 16px; row-gap: 26px;
+/* Apps: large icons in a grid on the right, with a Linux/Android toggle above */
+.apps-panel { flex: none; align-self: center; display: flex; flex-direction: column; align-items: flex-end; gap: 22px; }
+.source-toggle {
+  display: flex; padding: 5px; gap: 4px; border-radius: 20px;
+  background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(14px);
 }
+.source-toggle button {
+  height: 52px; padding: 0 22px; border-radius: 15px; font-size: 18px; font-weight: 600;
+  color: rgba(255, 255, 255, 0.6); transition: background 150ms var(--ease), color 150ms var(--ease);
+}
+.source-toggle button[data-on="true"] { background: rgba(255, 255, 255, 0.92); color: #111; }
+.app-grid {
+  display: grid; grid-template-columns: repeat(4, 150px); column-gap: 16px; row-gap: 26px;
+  max-height: 560px; overflow-y: auto; touch-action: pan-y; scrollbar-width: none;
+}
+.apps-empty { grid-column: 1 / -1; color: rgba(255, 255, 255, 0.6); font-size: 20px; padding: 40px 0; text-align: center; }
 .app {
   position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px;
   padding: 10px 0; border-radius: 28px; transition: transform 140ms var(--ease), opacity 140ms;

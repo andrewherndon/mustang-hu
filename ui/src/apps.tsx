@@ -19,8 +19,8 @@ const ICONS: Record<string, string> = {
   browser: "/icons/chrome.png",
 };
 
-export function AppIcon({ id, title, size }: { id: string; title: string; size: number }) {
-  const src = ICONS[id];
+export function AppIcon({ id, title, size, src: srcOverride }: { id: string; title: string; size: number; src?: string }) {
+  const src = srcOverride || ICONS[id];
   return (
     <span className="app-icon" style={{ width: size, height: size, borderRadius: size * 0.27 }}>
       {src ? <img src={src} alt="" draggable={false} /> : <b style={{ fontSize: size * 0.42 }}>{title[0]}</b>}

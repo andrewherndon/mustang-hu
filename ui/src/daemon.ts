@@ -8,6 +8,16 @@ export type AppId = string;
 export type Layout = "home" | AppId;
 export interface Rect { x: number; y: number; width: number; height: number }
 export interface AppState { title: string; running: boolean }
+export interface AndroidApp { pkg: string; title: string; icon: string }
+export interface Media {
+  source: "android"; package: string; app: string;
+  title: string; artist: string; album: string; playing: boolean;
+}
+export type MediaAction = "play-pause" | "next" | "previous";
+
+/** Android app icons are served by hu-ui-server on the Surface (also from the dev server). */
+export const ANDROID_ICON_BASE = "http://localhost:8080";
+
 export interface DaemonState {
   aa: { connected: boolean };
   apps: Record<AppId, AppState>;
@@ -18,10 +28,20 @@ export interface DaemonState {
   /** Default audio output (0..1) and panel backlight (0..1). */
   volume: { level: number; muted: boolean };
   brightness: number;
+  /** Apps installed in Android (Waydroid) and what Android is playing. */
+  androidApps: AndroidApp[];
+  media: Media | null;
   screen: { width: number; height: number };
 }
 
 const DAEMON_URL = "ws://localhost:8765";
+
+function MOCK_ANDROID_APPS(): AndroidApp[] {
+  if (!new URLSearchParams(location.search).has("mock")) return [];
+  return ["Maps", "Spotify", "YouTube", "Play Store", "Waze", "Messages"].map((title) => ({
+    pkg: `mock.${title.toLowerCase().replace(/\s/g, "")}`, title, icon: "",
+  }));
+}
 
 /** Defaults match the Surface; used until the daemon answers, and in mock mode. */
 export const DEFAULT_STATE: DaemonState = {
@@ -43,6 +63,8 @@ export const DEFAULT_STATE: DaemonState = {
   keyboard: { open: false, available: false, height: 760 },
   volume: { level: 0.5, muted: false },
   brightness: 0.6,
+  androidApps: MOCK_ANDROID_APPS(),
+  media: null,
   screen: { width: 2880, height: 1920 },
 };
 
@@ -131,6 +153,25 @@ export function useDaemon() {
     else ws.current?.send(JSON.stringify({ type: "setBrightness", level }));
   }, []);
 
+  const launchAndroid = useCallback((pkg: string) => {
+    if (MOCK) {
+      setState((s) => ({
+        ...s, layout: "android", apps: { ...s.apps, android: { ...s.apps.android, running: true } },
+        media: pkg.includes("spotify") ? { source: "android", package: pkg, app: "Spotify", title: "Blinding Lights", artist: "The Weeknd", album: "After Hours", playing: true } : s.media,
+      }));
+      return;
+    }
+    ws.current?.send(JSON.stringify({ type: "launchAndroid", pkg }));
+  }, []);
+
+  const mediaControl = useCallback((action: MediaAction) => {
+    if (MOCK) {
+      setState((s) => (s.media && action === "play-pause" ? { ...s, media: { ...s.media, playing: !s.media.playing } } : s));
+      return;
+    }
+    ws.current?.send(JSON.stringify({ type: "media", action }));
+  }, []);
+
   /** Mock only: simulate plugging the phone in or out (the daemon auto-opens AA). */
   const mockSetConnected = useCallback((connected: boolean) => {
     setState((s) => ({
@@ -141,5 +182,5 @@ export function useDaemon() {
     }));
   }, []);
 
-  return { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, mockTyped, mockSetConnected };
+  return { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, launchAndroid, mediaControl, mockTyped, mockSetConnected };
 }

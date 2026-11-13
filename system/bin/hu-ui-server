@@ -7,14 +7,23 @@ the new index.html (and its new hashed assets) load instead of a cached copy.
 """
 import functools
 import http.server
+import os
 
 ROOT = "/opt/headunit/ui"
+# Android app icons written by Waydroid, served at /android-icons/<package>.png
+ANDROID_ICONS = os.path.expanduser("~/.local/share/waydroid/data/icons")
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header("Cache-Control", "no-cache")
         super().end_headers()
+
+    def translate_path(self, path):
+        if path.startswith("/android-icons/"):
+            name = os.path.basename(path.split("?")[0])
+            return os.path.join(ANDROID_ICONS, name)
+        return super().translate_path(path)
 
     def log_message(self, *args):
         pass                                   # quiet: one line per asset is noise
