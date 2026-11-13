@@ -112,6 +112,10 @@ export function App() {
             layout={state.layout}
             aaConnected={state.aa.connected}
             apps={state.apps}
+            androidApps={state.androidApps}
+            androidFront={state.androidFront}
+            androidRecent={state.androidRecent}
+            onLaunchAndroid={launchAndroid}
             online={online}
             keyboardAvailable={state.keyboard.available}
             onOpen={setLayout}

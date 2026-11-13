@@ -6,6 +6,8 @@
 #   hu-android-look lawnchair-revert   back to the stock launcher (Trebuchet) and uninstall Lawnchair
 #   hu-android-look density <dpi>      UI scale (360 = like a 1280x720 tablet in the 2880x1620 slot)
 #   hu-android-look density-revert     back to Waydroid's default (180)
+#   hu-android-look gestures           gesture navigation (single bar at the bottom)
+#   hu-android-look buttons            three-button navigation (back / home / recents)
 #   hu-android-look status
 #
 # The stock launcher is never removed, so reverting is always possible.
@@ -42,9 +44,16 @@ case "${1:-status}" in
   density-revert)
     W wm density reset
     ;;
+  gestures)
+    W cmd overlay enable-exclusive --category com.android.internal.systemui.navbar.gestural
+    ;;
+  buttons)
+    W cmd overlay enable-exclusive --category com.android.internal.systemui.navbar.threebutton
+    ;;
   status)
     echo "home:    $(W cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME | tail -1)"
     echo "density: $(W wm density | tr '\n' ' ')"
+    echo "navbar:  $(W cmd overlay list | grep -F '[x]' | grep -o 'navbar\.[a-z_]*')"
     ;;
   *)
     sed -n '2,13p' "$0"; exit 1 ;;

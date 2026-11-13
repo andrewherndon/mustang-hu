@@ -33,6 +33,9 @@ export interface DaemonState {
   media: Media | null;
   /** Android is starting up (the slot shows a loading screen). */
   androidBooting: boolean;
+  /** Android app in front and recently used Android apps (newest first). */
+  androidFront: string | null;
+  androidRecent: string[];
   settings: { androidPreload: boolean };
   screen: { width: number; height: number };
 }
@@ -69,6 +72,8 @@ export const DEFAULT_STATE: DaemonState = {
   androidApps: MOCK_ANDROID_APPS(),
   media: null,
   androidBooting: false,
+  androidFront: null,
+  androidRecent: [],
   settings: { androidPreload: false },
   screen: { width: 2880, height: 1920 },
 };
@@ -162,6 +167,7 @@ export function useDaemon() {
     if (MOCK) {
       setState((s) => ({
         ...s, layout: "android", apps: { ...s.apps, android: { ...s.apps.android, running: true } },
+        androidFront: pkg, androidRecent: [pkg, ...s.androidRecent.filter((p) => p !== pkg)],
         media: pkg.includes("spotify") ? { source: "android", package: pkg, app: "Spotify", title: "Blinding Lights", artist: "The Weeknd", album: "After Hours", playing: true } : s.media,
       }));
       return;

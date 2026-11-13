@@ -32,6 +32,7 @@ Protocol (JSON text frames on ws://localhost:8765)
                     "volume": {"level": 0..1, "muted": bool},     (default PipeWire output)
                     "brightness": 0..1,                          (panel backlight)
                     "androidApps": [{pkg, title, icon}],          (installed in Waydroid)
+                    "androidFront": pkg | null, "androidRecent": [pkg],   (for the dock)
                     "media": {source, package, app, title, artist, album, playing} | null,
                     "screen": {width, height}}
   shell -> daemon  {"type": "setLayout", "layout": "home" | <app id>}
@@ -159,6 +160,8 @@ class Daemon:
         self.type_lock = asyncio.Lock()   # keeps injected keystrokes in order
         self.android_apps = []            # [{"pkg", "title", "icon"}]
         self.launch_seq = 0               # newest Android launch request wins
+        self.android_front = None         # package of the Android app in front
+        self.android_recent = []          # recently used Android apps, newest first
         self.android_booting = False      # Android is starting; the shell shows a loading screen
         self.android_lock = asyncio.Lock()
         try:
@@ -182,6 +185,8 @@ class Daemon:
             "brightness": self.brightness,
             "androidApps": self.android_apps,
             "androidBooting": self.android_booting,
+            "androidFront": self.android_front,
+            "androidRecent": self.android_recent,
             "settings": self.settings,
             "media": self.media,
             "screen": SCREEN,
@@ -503,14 +508,30 @@ class Daemon:
                 "title": parts[0], "artist": parts[1] if len(parts) > 1 else "",
                 "album": parts[2] if len(parts) > 2 else "", "playing": x["state"] == 3}
 
+    def note_android_front(self, pkg):
+        """Track the app in front and the recently used list (for the dock).
+        Only apps with a home-screen entry count (not launchers, Settings dialogs...)."""
+        if pkg and not any(a["pkg"] == pkg for a in self.android_apps):
+            pkg = None
+        changed = pkg != self.android_front
+        self.android_front = pkg
+        if pkg and (not self.android_recent or self.android_recent[0] != pkg):
+            self.android_recent = [pkg] + [p for p in self.android_recent if p != pkg][:7]
+            changed = True
+        return changed
+
     async def poll_android(self):
         while True:
             try:
                 apps = self.read_android_apps()
                 media = None
+                front_changed = False
                 if "android" in self.windows:
                     media = self.parse_media(await self.android_shell("dumpsys", "media_session"))
-                if apps != self.android_apps or media != self.media:
+                    front_changed = self.note_android_front(await self.resumed_android_package())
+                elif self.android_recent or self.android_front:
+                    self.android_recent, self.android_front, front_changed = [], None, True
+                if apps != self.android_apps or media != self.media or front_changed:
                     self.android_apps, self.media = apps, media
                     await self.broadcast()
             except Exception:
@@ -597,6 +618,7 @@ class Daemon:
             if mine != self.launch_seq:
                 return
             if await self.resumed_android_package() == pkg:
+                self.note_android_front(pkg)
                 break
             await asyncio.sleep(0.25)
         if mine == self.launch_seq:
