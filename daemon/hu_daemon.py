@@ -153,6 +153,7 @@ class Daemon:
         self.max_brightness = int(open(f"/sys/class/backlight/{BACKLIGHT}/max_brightness").read())
         self.type_lock = asyncio.Lock()   # keeps injected keystrokes in order
         self.android_apps = []            # [{"pkg", "title", "icon"}]
+        self.launch_seq = 0               # newest Android launch request wins
         self.media = None                 # what Android is playing, if anything
 
     # ---------- state ----------
@@ -200,6 +201,19 @@ class Daemon:
         if proc.returncode != 0:
             log.warning("swaymsg %r failed: %s", command, out.decode().strip())
 
+    async def window_rect(self, con):
+        """Current rect of a Sway container, or None if not visible."""
+        proc = await asyncio.create_subprocess_exec(
+            "swaymsg", "-r", "-t", "get_tree", stdout=asyncio.subprocess.PIPE)
+        out, _ = await proc.communicate()
+        stack = [json.loads(out)]
+        while stack:
+            n = stack.pop()
+            if n.get("id") == con:
+                return n["rect"] if n.get("visible") else None
+            stack += n.get("nodes", []) + n.get("floating_nodes", [])
+        return None
+
     async def place(self, app, con):
         """Show one app's window in the slot."""
         r = self.slot_rect()
@@ -208,10 +222,16 @@ class Daemon:
                    f"move absolute position {r['x']} {r['y']}, focus")
         # Apps (OpenAuto in particular) may resize themselves right after
         # appearing, so re-apply the placement a few times while they settle.
-        for wait in (0, 0.5, 1.0, 1.5):          # applied at 0, 0.5, 1.5, 3 s
+        # Only touch the window when it is not already exactly in place: every
+        # move/resize is a configure event, which Android (Waydroid) reacts to
+        # with a visible glitch (its notification shade flashes).
+        for wait in (0, 0.5, 1.0, 1.5):          # checked at 0, 0.5, 1.5, 3 s
             await asyncio.sleep(wait)
             if self.windows.get(app) != con or self.layout != app:
                 return
+            cur = await self.window_rect(con)
+            if cur and all(cur[k] == r[k] for k in ("x", "y", "width", "height")):
+                continue
             await self.sway(command)
 
     async def apply_layout(self):
@@ -478,19 +498,58 @@ class Daemon:
                 log.exception("polling Android failed")
             await asyncio.sleep(ANDROID_POLL_SECONDS)
 
+    async def resumed_android_package(self):
+        out = await self.android_shell("dumpsys", "activity", "activities", timeout=4)
+        for line in out.splitlines():
+            if "mResumedActivity" in line or "topResumedActivity" in line:
+                for word in line.split():
+                    if "/" in word:
+                        return word.split("/")[0]
+        return None
+
+    async def start_android_app(self, pkg):
+        """Bring an app to the front inside Android. (`waydroid app launch`
+        would close and reopen the whole Android window, which flashes the
+        notification shade and briefly shows the wrong size.)"""
+        comp = getattr(self, "_components", {}).get(pkg)
+        if not comp:
+            out = await self.android_shell("cmd", "package", "resolve-activity", "--brief",
+                                           "-c", "android.intent.category.LAUNCHER", pkg)
+            lines = [l.strip() for l in out.splitlines() if "/" in l]
+            comp = lines[-1] if lines else None
+            if comp:
+                self._components = {**getattr(self, "_components", {}), pkg: comp}
+        if comp:
+            await self.android_shell("am", "start", "-n", comp)
+        else:
+            await self.cmd("waydroid", "app", "launch", pkg)    # fallback
+
     async def launch_android(self, pkg):
-        """Open an Android app: start Android if needed, then show it in the slot."""
+        """Open an Android app: start Android if needed, open the app and show
+        Android once that app is in front (not the previous one). Rapid taps:
+        only the newest request is carried out."""
         if not any(a["pkg"] == pkg for a in self.android_apps):
             return
+        self.launch_seq += 1
+        mine = self.launch_seq
         if "android" not in self.windows:
             await self.set_layout("android")              # starts Waydroid (hu-android)
             for _ in range(120):                           # first boot can take ~20 s
-                if "android" in self.windows:
+                if "android" in self.windows or mine != self.launch_seq:
                     break
                 await asyncio.sleep(0.5)
             await asyncio.sleep(2)
-        await self.cmd("waydroid", "app", "launch", pkg)
-        await self.set_layout("android")
+        if mine != self.launch_seq:
+            return                                         # a newer tap took over
+        await self.start_android_app(pkg)
+        for _ in range(12):                                # up to ~3 s
+            if mine != self.launch_seq:
+                return
+            if await self.resumed_android_package() == pkg:
+                break
+            await asyncio.sleep(0.25)
+        if mine == self.launch_seq and self.layout != "android":
+            await self.set_layout("android")
 
     async def media_control(self, action):
         if action in ("play-pause", "next", "previous") and "android" in self.windows:
