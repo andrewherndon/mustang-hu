@@ -8,12 +8,16 @@ Later a USB GPS (gpsd) can feed real fixes through the same path.
   hu-gps set LAT,LON                 hold one position (default: Georgia Tech)
   hu-gps drive LAT,LON LAT,LON [MPH] drive a straight line between two points
                                      at a constant speed, 1 update/s, then hold
+  hu-gps route LAT,LON LAT,LON [MPH] drive along real roads (route from the public
+                                     OSRM server; needs internet), 1 update/s
 Test providers vanish when Android restarts; every command re-creates them.
 """
+import json
 import math
 import subprocess
 import sys
 import time
+import urllib.request
 
 PROVIDERS = ("gps", "network", "fused")
 DEFAULT = (33.7756, -84.3963)   # Georgia Tech
@@ -29,16 +33,21 @@ def setup():
     shell("appops", "set", "0", "android:mock_location", "allow")
     shell("cmd", "location", "set-location-enabled", "true")
     for p in PROVIDERS:
-        shell("cmd", "location", "providers", "add-test-provider", p,
-              "--supportsSpeed", "--supportsBearing")
+        shell("cmd", "location", "providers", "add-test-provider", p, "--supportsSpeed", "--supportsBearing")
         shell("cmd", "location", "providers", "set-test-provider-enabled", p, "true")
 
 
 def push(lat, lon, speed_ms=0.0, bearing=0.0):
-    for p in PROVIDERS:
-        shell("cmd", "location", "providers", "set-test-provider-location", p,
-              "--location", f"{lat:.6f},{lon:.6f}", "--accuracy", "5",
-              "--speed", f"{speed_ms:.2f}", "--bearing", f"{bearing:.1f}")
+    """Send one fix to all providers in a single shell call (keeps up with
+    1 update/s). Android 13's shell command takes position and accuracy only:
+    apps such as Google Maps derive speed and heading from successive fixes.
+    (speed_ms/bearing are kept for a future real-GPS path.)"""
+    cmds = "; ".join(
+        f"cmd location providers set-test-provider-location {p} --location {lat:.6f},{lon:.6f} --accuracy 5"
+        for p in PROVIDERS)
+    r = shell("sh", "-c", cmds)
+    if "Exception" in (r.stdout + r.stderr):
+        print("location update failed:", (r.stdout + r.stderr).strip().splitlines()[:2], file=sys.stderr)
 
 
 def parse(point):
@@ -76,6 +85,33 @@ def main():
             t = i / steps
             push(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, speed if i < steps else 0, heading)
             time.sleep(1)
+    elif args[0] == "route" and len(args) >= 3:
+        a, b = parse(args[1]), parse(args[2])
+        speed = (float(args[3]) if len(args) > 3 else 35) * 0.44704
+        url = (f"https://router.project-osrm.org/route/v1/driving/{a[1]},{a[0]};{b[1]},{b[0]}"
+               "?overview=full&geometries=geojson")
+        req = urllib.request.Request(url, headers={"User-Agent": "mustang-hu-gps"})
+        route = json.load(urllib.request.urlopen(req, timeout=15))["routes"][0]
+        pts = [(lat, lon) for lon, lat in route["geometry"]["coordinates"]]
+        print(f"route {route['distance'] / 1609:.1f} mi, {len(pts)} points, at {speed / 0.44704:.0f} mph "
+              f"(~{route['distance'] / speed / 60:.0f} min)")
+        # Walk the polyline at constant speed, one fix per second.
+        i, pos = 0, pts[0]
+        while i < len(pts) - 1:
+            left = speed
+            while left > 0 and i < len(pts) - 1:
+                seg = distance_m(pos, pts[i + 1])
+                if seg <= left:
+                    left -= seg; pos = pts[i + 1]; i += 1
+                else:
+                    t = left / seg
+                    pos = (pos[0] + (pts[i + 1][0] - pos[0]) * t, pos[1] + (pts[i + 1][1] - pos[1]) * t)
+                    left = 0
+            heading = bearing_between(pos, pts[min(i + 1, len(pts) - 1)]) if i < len(pts) - 1 else 0
+            push(pos[0], pos[1], speed, heading)
+            time.sleep(1)
+        push(*pts[-1])
+        print("arrived")
     else:
         print(__doc__)
         sys.exit(1)

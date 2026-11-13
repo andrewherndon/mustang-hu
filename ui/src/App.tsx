@@ -32,7 +32,7 @@ function useFitScale(width: number, height: number) {
 }
 
 export function App() {
-  const { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, launchAndroid, mediaControl, mockTyped, mockSetConnected } = useDaemon();
+  const { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, launchAndroid, mediaControl, setSetting, mockTyped, mockSetConnected } = useDaemon();
   const [controlsOpen, setControlsOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const { appearance, update: updateAppearance } = useAppearance();
@@ -74,7 +74,16 @@ export function App() {
             onMedia={mediaControl}
           />
           {appearanceOpen && state.layout === "home" && (
-            <Appearance appearance={appearance} onChange={updateAppearance} onClose={() => setAppearanceOpen(false)} />
+            <Appearance appearance={appearance} onChange={updateAppearance} onClose={() => setAppearanceOpen(false)}
+                        androidPreload={state.settings.androidPreload}
+                        onAndroidPreload={(v) => setSetting("androidPreload", v)} />
+          )}
+          {state.androidBooting && (
+            <div className="android-loading" style={{ left: aa.x, top: aa.y, width: aa.width, height: aa.height }}>
+              <div className="android-loading-spinner" />
+              <div className="android-loading-title">Starting Android…</div>
+              <div className="android-loading-sub">This takes about 15 seconds the first time</div>
+            </div>
           )}
           {/* On the Surface the app window covers this slot; in a desktop browser it is a placeholder. */}
           <div className="aa-slot" aria-hidden={!slotVisible}

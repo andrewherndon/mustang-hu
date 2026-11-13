@@ -47,6 +47,7 @@ Protocol (JSON text frames on ws://localhost:8765)
                    {"type": "setBrightness", "level": 0..1}
                    {"type": "launchAndroid", "pkg": "com.google.android.youtube"}
                    Start Android if needed, open the app and show Android in the slot.
+                   {"type": "setSetting", "key": "androidPreload", "value": bool}
                    {"type": "media", "action": "play-pause" | "next" | "previous"}
                    Control whatever Android is playing (Spotify, YouTube, ...).
 Volume and brightness are also polled, so changes from the hardware volume
@@ -84,6 +85,10 @@ ANDROID_DESKTOP_DIR = os.path.expanduser("~/.local/share/applications")
 ANDROID_HIDDEN = {"com.android.documentsui", "com.android.gallery3d", "org.lineageos.jelly",
                   "org.lineageos.recorder", "org.lineageos.etar", "com.android.contacts"}
 ANDROID_POLL_SECONDS = 2.0
+
+# Head-unit settings changed from the shell's settings sheet (persisted here).
+SETTINGS_FILE = os.path.expanduser("~/.config/headunit/settings.json")
+DEFAULT_SETTINGS = {"androidPreload": False}   # boot Android in the background at startup
 
 KEYCODES = {"BackSpace": 14, "Tab": 15, "Return": 28, "Left": 105, "Right": 106}   # linux/input-event-codes.h
 AUTO_OPEN_AA = True   # switch to Android Auto when a phone connects
@@ -154,6 +159,12 @@ class Daemon:
         self.type_lock = asyncio.Lock()   # keeps injected keystrokes in order
         self.android_apps = []            # [{"pkg", "title", "icon"}]
         self.launch_seq = 0               # newest Android launch request wins
+        self.android_booting = False      # Android is starting; the shell shows a loading screen
+        self.android_lock = asyncio.Lock()
+        try:
+            self.settings = {**DEFAULT_SETTINGS, **json.load(open(SETTINGS_FILE))}
+        except (OSError, ValueError):
+            self.settings = dict(DEFAULT_SETTINGS)
         self.media = None                 # what Android is playing, if anything
 
     # ---------- state ----------
@@ -170,6 +181,8 @@ class Daemon:
             "volume": self.volume,
             "brightness": self.brightness,
             "androidApps": self.android_apps,
+            "androidBooting": self.android_booting,
+            "settings": self.settings,
             "media": self.media,
             "screen": SCREEN,
         }
@@ -246,6 +259,9 @@ class Daemon:
     async def set_layout(self, layout):
         if layout != "home" and layout not in APPS:
             return
+        if layout == "android" and "android" not in self.windows and not self.android_booting:
+            asyncio.create_task(self.open_android())
+            return
         if layout != "home" and layout not in self.windows:
             launch = APPS[layout]["launch"]
             if launch is None:
@@ -299,6 +315,9 @@ class Daemon:
         elif change == "close" and self.windows.get(app) == con["id"]:
             log.info("%s window closed", app)
             del self.windows[app]
+            if app == "android" and self.android_booting:
+                await self.broadcast()                # Waydroid's splash window; the real one follows
+                return
             if self.layout == app:
                 wanted = self.wanted
                 await self.set_layout("home")
@@ -524,21 +543,53 @@ class Daemon:
         else:
             await self.cmd("waydroid", "app", "launch", pkg)    # fallback
 
+    async def android_ready(self):
+        return (await self.android_shell("getprop", "sys.boot_completed", timeout=3)).strip() == "1"
+
+    async def ensure_android(self):
+        """Make sure Android is booted and its window exists. While it starts,
+        androidBooting is set so the shell can show a loading screen in the
+        slot. Returns True when Android is ready."""
+        async with self.android_lock:
+            if "android" in self.windows and await self.android_ready():
+                return True
+            self.android_booting = True
+            self.layout = "android"                    # the slot shows the loading screen
+            await self.broadcast()
+            try:
+                if "android" not in self.windows:
+                    await self.sway("exec hu-android")
+                for _ in range(180):                    # up to ~90 s on a cold start
+                    if "android" in self.windows and await self.android_ready():
+                        break
+                    await asyncio.sleep(0.5)
+                else:
+                    log.warning("Android did not start in time")
+                    return False
+                await asyncio.sleep(1)                  # let the launcher settle
+                return True
+            finally:
+                self.android_booting = False
+
+    async def open_android(self):
+        """Show Android itself (the "Android" tile)."""
+        if await self.ensure_android():
+            self.layout = "home"                        # force a fresh placement
+            await self.set_layout("android")
+        else:
+            await self.set_layout("home")
+
     async def launch_android(self, pkg):
-        """Open an Android app: start Android if needed, open the app and show
-        Android once that app is in front (not the previous one). Rapid taps:
-        only the newest request is carried out."""
+        """Open an Android app: start Android if needed (loading screen meanwhile),
+        bring the app to the front, then show Android. Rapid taps: only the
+        newest request is carried out."""
         if not any(a["pkg"] == pkg for a in self.android_apps):
             return
         self.launch_seq += 1
         mine = self.launch_seq
-        if "android" not in self.windows:
-            await self.set_layout("android")              # starts Waydroid (hu-android)
-            for _ in range(120):                           # first boot can take ~20 s
-                if "android" in self.windows or mine != self.launch_seq:
-                    break
-                await asyncio.sleep(0.5)
-            await asyncio.sleep(2)
+        if not await self.ensure_android():
+            await self.set_layout("home")
+            return
         if mine != self.launch_seq:
             return                                         # a newer tap took over
         await self.start_android_app(pkg)
@@ -548,8 +599,33 @@ class Daemon:
             if await self.resumed_android_package() == pkg:
                 break
             await asyncio.sleep(0.25)
-        if mine == self.launch_seq and self.layout != "android":
-            await self.set_layout("android")
+        if mine == self.launch_seq:
+            if self.layout == "android":
+                asyncio.create_task(self.apply_layout())
+            else:
+                await self.set_layout("android")
+
+    async def preload_android(self):
+        """Boot Android in the background at startup (setting androidPreload):
+        the session only, no window, so it doesn't cover the shell."""
+        await asyncio.sleep(8)                              # let the shell and OpenAuto start first
+        if not self.settings.get("androidPreload") or "android" in self.windows:
+            return
+        status = (await self.cmd("waydroid", "status"))
+        if "RUNNING" not in status.split("Session:")[-1].split("\n")[0]:
+            log.info("preloading Android")
+            await self.sway("exec waydroid session start")
+
+    async def set_setting(self, key, value):
+        if key not in DEFAULT_SETTINGS or type(value) is not type(DEFAULT_SETTINGS[key]):
+            return
+        self.settings[key] = value
+        os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
+        with open(SETTINGS_FILE, "w") as f:
+            json.dump(self.settings, f)
+        await self.broadcast()
+        if key == "androidPreload" and value:
+            asyncio.create_task(self.preload_android())
 
     async def media_control(self, action):
         if action in ("play-pause", "next", "previous") and "android" in self.windows:
@@ -581,6 +657,8 @@ class Daemon:
                     await self.set_mute(bool(msg.get("muted")))
                 elif msg.get("type") == "launchAndroid" and isinstance(msg.get("pkg"), str):
                     asyncio.create_task(self.launch_android(msg["pkg"]))
+                elif msg.get("type") == "setSetting":
+                    await self.set_setting(msg.get("key"), msg.get("value"))
                 elif msg.get("type") == "media":
                     await self.media_control(msg.get("action"))
                 elif msg.get("type") == "setBrightness" and isinstance(msg.get("level"), (int, float)):
@@ -596,6 +674,7 @@ class Daemon:
         asyncio.create_task(self.poll_controls())
         self.android_apps = self.read_android_apps()
         asyncio.create_task(self.poll_android())
+        asyncio.create_task(self.preload_android())
         async with websockets.serve(self.handle_client, HOST, PORT):
             log.info("listening on ws://%s:%d", HOST, PORT)
             await self.watch_sway()

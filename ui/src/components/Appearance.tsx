@@ -5,19 +5,21 @@ interface Props {
   appearance: A;
   onChange: (patch: Partial<A>) => void;
   onClose: () => void;
+  androidPreload: boolean;
+  onAndroidPreload: (v: boolean) => void;
 }
 
-/** Appearance sheet over the home screen: background colour and motion. */
-export function Appearance({ appearance, onChange, onClose }: Props) {
+/** Settings sheet over the home screen: appearance and Android. */
+export function Appearance({ appearance, onChange, onClose, androidPreload, onAndroidPreload }: Props) {
   return (
     <div className="sheet-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="sheet">
         <div className="sheet-head">
-          <div className="sheet-title">Appearance</div>
+          <div className="sheet-title">Settings</div>
           <button className="sheet-done" onClick={onClose}>Done</button>
         </div>
 
-        <div className="sheet-label">Colour</div>
+        <div className="sheet-label">Appearance · Colour</div>
         <div className="swatches">
           {PRESETS.map((p) => (
             <button key={p.name} className="swatch" data-on={Math.abs(appearance.hue - p.hue) < 3}
@@ -35,6 +37,15 @@ export function Appearance({ appearance, onChange, onClose }: Props) {
 
         <button className="sheet-toggle" data-on={appearance.motion} onClick={() => onChange({ motion: !appearance.motion })}>
           <span>Moving background</span>
+          <span className="toggle"><span /></span>
+        </button>
+
+        <div className="sheet-label">Android</div>
+        <button className="sheet-toggle" data-on={androidPreload} onClick={() => onAndroidPreload(!androidPreload)}>
+          <span>
+            Start Android at boot
+            <small className="sheet-hint">Android apps open instantly; uses ~1.5 GB of memory in the background</small>
+          </span>
           <span className="toggle"><span /></span>
         </button>
       </div>

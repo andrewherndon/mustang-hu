@@ -243,7 +243,7 @@ button:disabled { cursor: default; }
 .hue-slider .slider { height: 64px; flex: none; width: 100%;
   background: linear-gradient(90deg, oklch(0.55 0.2 0), oklch(0.55 0.2 60), oklch(0.55 0.2 120), oklch(0.55 0.2 180), oklch(0.55 0.2 240), oklch(0.55 0.2 300), oklch(0.55 0.2 360)); }
 .hue-slider .slider-fill { background: rgba(0, 0, 0, 0); border-right: 4px solid #fff; }
-.sheet-toggle { margin-top: 26px; width: 100%; height: 72px; display: flex; align-items: center; justify-content: space-between;
+.sheet-toggle { margin-top: 26px; width: 100%; min-height: 72px; gap: 16px; display: flex; align-items: center; justify-content: space-between;
   padding: 0 8px; font-size: 21px; font-weight: 500; }
 .toggle { width: 64px; height: 38px; border-radius: 19px; background: rgba(255, 255, 255, 0.18); position: relative; transition: background 160ms var(--ease); }
 .toggle span { position: absolute; top: 4px; left: 4px; width: 30px; height: 30px; border-radius: 50%; background: #fff; transition: transform 160ms var(--ease); }
@@ -286,3 +286,18 @@ button:disabled { cursor: default; }
 .weather-outlook { font-size: 16px; color: rgba(255, 255, 255, 0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .weather[data-rain="true"] .weather-outlook { color: #8fd0ff; }
 .weather-empty { font-size: 16px; color: rgba(255, 255, 255, 0.5); }
+
+/* ---------- Android loading screen (over the app slot) ---------- */
+.android-loading {
+  position: absolute; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: rgba(8, 10, 14, 0.82); backdrop-filter: blur(20px);
+}
+.android-loading-spinner {
+  width: 64px; height: 64px; border-radius: 50%; margin-bottom: 10px;
+  border: 5px solid rgba(255, 255, 255, 0.15); border-top-color: #3ddc84; animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.android-loading-title { font-size: 30px; font-weight: 600; }
+.android-loading-sub { font-size: 18px; color: rgba(255, 255, 255, 0.6); }
+.sheet-hint { display: block; margin-top: 4px; font-size: 15px; font-weight: 400; color: rgba(255, 255, 255, 0.55); text-align: left; }
+.sheet-toggle > span:first-child { text-align: left; }

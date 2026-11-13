@@ -31,6 +31,9 @@ export interface DaemonState {
   /** Apps installed in Android (Waydroid) and what Android is playing. */
   androidApps: AndroidApp[];
   media: Media | null;
+  /** Android is starting up (the slot shows a loading screen). */
+  androidBooting: boolean;
+  settings: { androidPreload: boolean };
   screen: { width: number; height: number };
 }
 
@@ -65,6 +68,8 @@ export const DEFAULT_STATE: DaemonState = {
   brightness: 0.6,
   androidApps: MOCK_ANDROID_APPS(),
   media: null,
+  androidBooting: false,
+  settings: { androidPreload: false },
   screen: { width: 2880, height: 1920 },
 };
 
@@ -164,6 +169,11 @@ export function useDaemon() {
     ws.current?.send(JSON.stringify({ type: "launchAndroid", pkg }));
   }, []);
 
+  const setSetting = useCallback((key: "androidPreload", value: boolean) => {
+    if (MOCK) setState((s) => ({ ...s, settings: { ...s.settings, [key]: value } }));
+    else ws.current?.send(JSON.stringify({ type: "setSetting", key, value }));
+  }, []);
+
   const mediaControl = useCallback((action: MediaAction) => {
     if (MOCK) {
       setState((s) => (s.media && action === "play-pause" ? { ...s, media: { ...s.media, playing: !s.media.playing } } : s));
@@ -182,5 +192,5 @@ export function useDaemon() {
     }));
   }, []);
 
-  return { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, launchAndroid, mediaControl, mockTyped, mockSetConnected };
+  return { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, launchAndroid, mediaControl, setSetting, mockTyped, mockSetConnected };
 }
