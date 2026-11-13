@@ -1,8 +1,13 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { formatDate, formatTime, useClock } from "../useClock";
 import { ANDROID_ICON_BASE, type AndroidApp, type AppState, type Layout, type Media, type MediaAction } from "../daemon";
 import { AppIcon } from "../apps";
 import { MustangGraphic } from "./MustangGraphic";
+import { Intro } from "./Intro";
+import { WeatherWidget } from "./WeatherWidget";
+
+/** The intro plays once per shell load (boot / reload), not on every return to Home. */
+let introShown = false;
 
 interface Props {
   hidden: boolean;
@@ -40,20 +45,30 @@ function useSource(): [Source, (s: Source) => void] {
 export function Home({ hidden, motion, aaConnected, apps, androidApps, media, onOpen, onLaunchAndroid, onMedia }: Props) {
   const now = useClock();
   const [source, setSource] = useSource();
+  const [intro, setIntro] = useState(() => !introShown);
+  const endIntro = useCallback(() => { introShown = true; setIntro(false); }, []);
   const ids = [...ORDER.filter((id) => apps[id]), ...Object.keys(apps).filter((id) => !ORDER.includes(id))];
 
   return (
-    <div className="home" data-hidden={hidden}>
+    <div className="home" data-hidden={hidden} data-intro={intro}>
+      {intro && <Intro onDone={endIntro} />}
       <div className="home-left">
-        <div className="clock">{formatTime(now)}</div>
-        <div className="clock-date">{formatDate(now)}</div>
+        <div className="clock reveal" style={{ ["--d" as string]: "0ms" }}>{formatTime(now)}</div>
+        <div className="clock-date reveal" style={{ ["--d" as string]: "120ms" }}>{formatDate(now)}</div>
 
-        <MustangGraphic playing={!hidden && motion} />
+        <div className="reveal reveal-car" style={{ ["--d" as string]: "350ms" }}>
+          <MustangGraphic playing={!hidden && motion && !intro} />
+        </div>
 
-        <NowPlaying media={media} aaConnected={aaConnected} onMedia={onMedia} />
+        <div className="home-left-bottom">
+          <div className="reveal" style={{ ["--d" as string]: "650ms" }}><WeatherWidget /></div>
+          <div className="reveal" style={{ ["--d" as string]: "800ms" }}>
+            <NowPlaying media={media} aaConnected={aaConnected} onMedia={onMedia} />
+          </div>
+        </div>
       </div>
 
-      <div className="apps-panel">
+      <div className="apps-panel reveal" style={{ ["--d" as string]: "500ms" }}>
         <div className="source-toggle" role="tablist">
           <button role="tab" data-on={source === "linux"} onClick={() => setSource("linux")}>Linux</button>
           <button role="tab" data-on={source === "android"} onClick={() => setSource("android")}>Android</button>

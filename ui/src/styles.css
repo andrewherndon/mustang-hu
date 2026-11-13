@@ -157,8 +157,7 @@ button:disabled { cursor: default; }
 }
 .clock-date { margin-top: 12px; font-size: 24px; font-weight: 450; color: rgba(255, 255, 255, 0.78); }
 
-.nowplaying {
-  margin-top: auto; display: flex; align-items: center; gap: 22px; max-width: 520px;
+.nowplaying { display: flex; align-items: center; gap: 22px; max-width: 520px;
   padding: 18px; border-radius: 28px; background: rgba(0, 0, 0, 0.32);
   border: 1px solid rgba(255, 255, 255, 0.07); backdrop-filter: blur(18px);
 }
@@ -221,7 +220,7 @@ button:disabled { cursor: default; }
 .dock-app[data-active="true"] { opacity: 1; }
 
 /* ---------- the car (MustangGraphic) ---------- */
-.mustang { width: 600px; margin: 14px 0 0 -40px; }
+.mustang { width: 600px; margin: 0 0 0 -40px; }
 .mustang video { display: block; width: 100%; height: 100%; pointer-events: none; }
 
 /* ---------- appearance sheet ---------- */
@@ -251,3 +250,39 @@ button:disabled { cursor: default; }
 .sheet-toggle[data-on="true"] .toggle { background: var(--accent); }
 .sheet-toggle[data-on="true"] .toggle span { transform: translateX(26px); }
 .hue-slider .slider-value { display: none; }
+
+/* ---------- intro (greeting) and the home screen reveal ---------- */
+.intro {
+  position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center;
+  font-family: "Outfit Variable", "Inter Variable", "Noto Sans CJK SC", "PingFang SC", sans-serif;
+  font-size: 84px; font-weight: 300; letter-spacing: 0.02em; color: #fff;
+  text-shadow: 0 4px 40px rgba(0, 0, 0, 0.45);
+  transition: opacity 500ms var(--ease), transform 600ms var(--ease), filter 500ms var(--ease);
+}
+.intro[data-leaving="true"] { opacity: 0; transform: translateY(-24px) scale(0.98); filter: blur(6px); }
+.intro-caret {
+  width: 4px; height: 92px; margin-left: 10px; border-radius: 2px; background: currentColor;
+  animation: caret 1s steps(1) infinite;
+}
+@keyframes caret { 50% { opacity: 0; } }
+
+/* Everything on home is hidden during the intro, then eases in, staggered by --d. */
+.home .reveal { transition: opacity 700ms var(--ease) var(--d, 0ms), transform 800ms var(--ease) var(--d, 0ms); }
+.home[data-intro="true"] .reveal { opacity: 0; transform: translateY(18px); transition: none; }
+.home[data-intro="true"] .reveal-car { transform: translateX(-60px); }
+.reveal-car { margin-top: 14px; }
+
+.home-left-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 14px; }
+
+/* ---------- weather ---------- */
+.weather {
+  display: flex; align-items: center; gap: 16px; max-width: 520px; padding: 4px 6px;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5);
+}
+.weather-icon { color: rgba(255, 255, 255, 0.92); display: grid; place-items: center; }
+.weather-temp { font-family: "Outfit Variable", sans-serif; font-size: 46px; font-weight: 300; line-height: 1; }
+.weather-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.weather-label { font-size: 18px; font-weight: 600; }
+.weather-outlook { font-size: 16px; color: rgba(255, 255, 255, 0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.weather[data-rain="true"] .weather-outlook { color: #8fd0ff; }
+.weather-empty { font-size: 16px; color: rgba(255, 255, 255, 0.5); }
