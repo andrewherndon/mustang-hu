@@ -60,3 +60,5 @@
 
 .tm-matrix { position: absolute; inset: 0; z-index: 9; background: #000; }
 .tm-matrix canvas { width: 100%; height: 100%; }
+.tm-apps { min-height: 0; overflow-y: auto; touch-action: pan-y; }
+.tm-mpc .tm-settings { color: var(--bg); background: var(--y); border-color: var(--y); font-weight: 600; }

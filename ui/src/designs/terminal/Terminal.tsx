@@ -75,6 +75,7 @@ function Terminal({ ctx }: { ctx: DesignContext }) {
                 <button onClick={() => ctx.mediaControl("previous")}>prev</button>
                 <button onClick={() => ctx.mediaControl("play-pause")}>toggle</button>
                 <button onClick={() => ctx.mediaControl("next")}>next</button>
+                <button className="tm-settings" onClick={ctx.openSettings}>settings</button>
               </span>
             </div>
             <div className="tm-apps">
@@ -83,7 +84,6 @@ function Terminal({ ctx }: { ctx: DesignContext }) {
                   {a.kind === "android" ? "am start " : ""}{a.key.replace("android:", "").replace("mock.", "")}{a.running ? "*" : ""}
                 </button>
               ))}
-              <button onClick={ctx.openSettings}>settings</button>
             </div>
           </section>
           <footer className="tm-bar">
@@ -182,6 +182,7 @@ function Strip({ ctx }: { ctx: DesignContext }) {
         <button onClick={ctx.goHome}>^b 0 [dash]</button>
         {ctx.running.slice(0, 4).map((a, i) => <button key={a.key} data-active={a.active} onClick={a.open}>{i + 1}:{a.title.toLowerCase().replace(/\s/g, "")}{a.active ? "*" : ""}</button>)}
         {ctx.state.keyboard.available && <button onClick={ctx.openKeyboard}>kbd</button>}
+        <button onClick={ctx.openSettings}>settings</button>
         <span className="tm-bar-fill" />
         <span className="tm-strip-t">{hhmm(new Date(), true)}</span>
       </div>
