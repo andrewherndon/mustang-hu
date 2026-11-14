@@ -1,0 +1,56 @@
+.am { --bg: #f4ead2; --card: #fbf4e3; --ink: #2b1d10; --soft: #8a6a45; --amber: #e8962e; --line: rgba(43, 29, 16, 0.12);
+  --shadow: rgba(140, 90, 30, 0.22);
+  position: absolute; inset: 0; background: radial-gradient(120% 90% at 20% 0%, #fbefd2, var(--bg) 60%, #ecdcb8); color: var(--ink); font-family: "Inter Tight Variable", sans-serif; transition: background 1.5s, color 1.5s; }
+.am[data-night="true"] { --bg: #120b05; --card: #1c1209; --ink: #f0a240; --soft: #a2641f; --amber: #f0a240; --line: rgba(240, 162, 64, 0.16); --shadow: rgba(0, 0, 0, 0.6);
+  background: radial-gradient(120% 90% at 20% 0%, #24160a, var(--bg) 60%); }
+.am button { color: inherit; font-family: inherit; }
+
+.am-hero { position: absolute; left: 60px; top: 40px; }
+.am-greet { font: 400 52px/1 "Instrument Serif", serif; }
+.am-greet em { color: var(--amber); }
+.am-time { font: 400 230px/0.9 "Instrument Serif", serif; letter-spacing: -0.03em; margin-top: 10px;
+  text-shadow: var(--sx) var(--sy) 0 var(--shadow), calc(var(--sx) * 2) calc(var(--sy) * 2) 30px var(--shadow); }
+.am-sub { font-size: 24px; color: var(--soft); margin-top: 6px; }
+
+.am-sun { position: absolute; left: 60px; top: 470px; width: 480px; }
+.am-sun svg { width: 480px; height: 156px; overflow: visible; }
+.am-arc { fill: none; stroke: var(--soft); stroke-width: 2; stroke-dasharray: 3 8; stroke-linecap: round; }
+.am-hz { stroke: var(--soft); stroke-width: 1.5; opacity: 0.6; }
+.am-ball { fill: var(--amber); filter: drop-shadow(0 0 14px var(--amber)); }
+.am-sun-t { display: flex; justify-content: space-between; align-items: center; font-size: 22px; color: var(--soft); margin-top: 6px; }
+.am-sun-t button { height: 60px; padding: 0 22px; border-radius: 30px; border: 1.5px solid var(--line); font-size: 20px; font-weight: 600; color: var(--ink) !important; }
+
+.am-card { position: absolute; border-radius: 28px; background: var(--card); border: 1px solid var(--line);
+  box-shadow: var(--sx) var(--sy) 40px var(--shadow); overflow: hidden; transition: background 1.5s; }
+.am-cam { left: 600px; top: 40px; width: 460px; height: 330px; }
+.am-cam .camfeed { position: absolute; inset: 0; }
+.am-drive { left: 1084px; top: 40px; right: 40px; height: 330px; padding: 24px; display: flex; flex-direction: column; }
+.am-speed { font: 400 150px/0.9 "Instrument Serif", serif; display: flex; flex-direction: column; }
+.am-speed span { font: 500 20px "Inter Tight Variable", sans-serif; color: var(--soft); margin-top: 4px; }
+.am-facts { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 18px; color: var(--soft); }
+.am-facts b { color: var(--ink); font-weight: 600; }
+.am-media { left: 600px; top: 392px; right: 40px; height: 236px; padding: 26px 30px; display: flex; flex-direction: column; }
+.am-media-t { font: 400 58px/1 "Instrument Serif", serif; }
+.am-media-t em { font-style: italic; }
+.am-media-a { font-size: 22px; color: var(--soft); margin-top: 6px; }
+.am-media-b { margin-top: auto; display: flex; gap: 12px; }
+.am-media-b button { flex: 1; height: 76px; border-radius: 38px; border: 1.5px solid var(--line); font-size: 22px; font-weight: 600; }
+.am-media-b .am-primary { background: var(--ink); color: var(--bg) !important; border-color: var(--ink); }
+
+.am-apps { position: absolute; left: 40px; right: 40px; bottom: 34px; height: 250px; display: grid; grid-template-columns: repeat(9, 1fr); gap: 14px; align-items: end; }
+.am-app { height: 150px; border-radius: 24px; background: var(--card); border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  font-size: 17px; font-weight: 500; box-shadow: var(--sx) var(--sy) 24px var(--shadow); min-width: 0; }
+.am-app span:last-child { max-width: 92%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.am-app:disabled { opacity: 0.4; }
+.am-app[data-running="true"] { border-color: var(--amber); }
+.am-glyph { width: 56px; height: 56px; object-fit: contain; font-size: 32px; color: var(--amber); }
+
+.am-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 18px; padding: 0 28px; background: var(--bg); border-top: 1px solid var(--line); }
+.am-strip-home { height: 84px; padding: 0 26px; border-radius: 42px; background: var(--ink); color: var(--bg) !important; font-size: 22px; font-weight: 600; }
+.am-strip-speed { font: 400 80px/1 "Instrument Serif", serif; display: flex; align-items: baseline; gap: 6px; }
+.am-strip-speed span { font: 500 16px "Inter Tight Variable", sans-serif; color: var(--soft); }
+.am-strip-cam { width: 186px; height: 106px; border-radius: 18px; overflow: hidden; }
+.am-strip-cam .camfeed { width: 100%; height: 100%; }
+.am-strip-app { width: 100px; height: 100px; box-shadow: none; }
+.am-strip-app[data-active="true"] { border-color: var(--amber); border-width: 2px; }
+.am-strip-time { margin-left: auto; font: 400 64px "Instrument Serif", serif; }

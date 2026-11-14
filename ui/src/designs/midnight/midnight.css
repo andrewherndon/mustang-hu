@@ -1,0 +1,79 @@
+@property --mn-a { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+.mn { --bg: #08090a; --card: #0f1012; --line: #1e1f23; --text: #f7f8f8; --mute: #8a8f98; --indigo: #5e6ad2;
+  position: absolute; inset: 0; background: var(--bg); color: var(--text); font-family: "Geist Variable", sans-serif; }
+.mn button { color: inherit; font-family: inherit; }
+.mn-glow { position: absolute; left: 50%; top: -420px; width: 1300px; height: 700px; margin-left: -650px; pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(94, 106, 210, 0.22), transparent 70%); }
+.mn-label { font: 500 15px "Geist Variable", sans-serif; color: var(--mute); }
+.mn-kbd { height: 40px; padding: 0 14px; display: inline-flex; align-items: center; border-radius: 9px; border: 1px solid var(--line); background: #141518; font: 500 17px "Geist Mono Variable", monospace; color: var(--mute); }
+.mn-btn { height: 76px; min-width: 76px; padding: 0 22px; border-radius: 16px; border: 1px solid var(--line); background: #15161a; font-size: 24px; font-weight: 500; }
+.mn-btn:active { background: #1d1f25; }
+.mn-btn-primary { background: var(--text); color: var(--bg) !important; border-color: var(--text); }
+
+.mn-card { position: absolute; border-radius: 22px; background: linear-gradient(var(--card), var(--card)) padding-box, conic-gradient(from var(--mn-a), transparent 0 80%, rgba(94, 106, 210, 0.9) 90%, transparent 100%) border-box;
+  border: 1px solid transparent; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 1px var(--line); overflow: hidden; animation: mn-beam var(--beam) linear infinite; }
+@keyframes mn-beam { to { --mn-a: 360deg; } }
+
+.mn-head { position: absolute; left: 32px; right: 32px; top: 22px; height: 56px; display: flex; align-items: center; gap: 12px; }
+.mn-crumb { font-size: 20px; color: var(--mute); margin-right: 10px; }
+.mn-crumb i { font-style: normal; margin: 0 6px; color: #3a3d46; }
+.mn-crumb b { color: var(--text); font-weight: 500; }
+.mn-dot { width: 9px; height: 9px; border-radius: 50%; background: #eb5757; }
+.mn-dot[data-on="true"] { background: #4cb782; box-shadow: 0 0 10px #4cb782; }
+.mn-fill { flex: 1; }
+.mn-time { font-size: 40px; font-weight: 500; letter-spacing: -0.02em; }
+
+.mn-drive { left: 32px; top: 94px; width: 760px; height: 520px; }
+.mn-road { position: absolute; left: 0; right: 0; top: 150px; bottom: 0; -webkit-mask: linear-gradient(transparent, #000 30%); mask: linear-gradient(transparent, #000 30%); }
+.mn-speed { position: absolute; left: 30px; top: 22px; display: flex; flex-direction: column; }
+.mn-speed b { font-size: 140px; font-weight: 600; letter-spacing: -0.06em; line-height: 0.95;
+  background: linear-gradient(180deg, #fff 30%, #8a8f98); -webkit-background-clip: text; color: transparent; }
+.mn-unit { font: 500 18px "Geist Mono Variable", monospace; color: var(--mute); }
+.mn-metrics { position: absolute; right: 26px; top: 26px; width: 240px; display: flex; flex-direction: column; gap: 14px; }
+.mn-metric b { display: block; font-size: 34px; font-weight: 500; letter-spacing: -0.02em; }
+.mn-metric small { font-size: 15px; color: var(--mute); margin-left: 4px; }
+.mn-track { height: 4px; border-radius: 2px; background: #1e1f23; margin-top: 4px; }
+.mn-track i { display: block; height: 100%; border-radius: 2px; background: var(--indigo); box-shadow: 0 0 10px rgba(94, 106, 210, 0.7); }
+
+.mn-cam { left: 812px; top: 94px; right: 32px; height: 310px; }
+.mn-cam .camfeed { position: absolute; inset: 0; }
+.mn-badge { position: absolute; left: 16px; top: 16px; height: 38px; padding: 0 14px; display: flex; align-items: center; gap: 8px; border-radius: 19px; background: rgba(8, 9, 10, 0.7); backdrop-filter: blur(10px); border: 1px solid var(--line); font-size: 16px; }
+.mn-badge i { width: 8px; height: 8px; border-radius: 50%; background: #eb5757; }
+
+.mn-media { left: 812px; top: 420px; right: 32px; height: 194px; display: flex; align-items: center; gap: 12px; padding: 0 22px; }
+.mn-media-art { width: 120px; height: 120px; border-radius: 16px; flex: none; background: linear-gradient(135deg, #5e6ad2, #b55bd2 60%, #f5c26b); }
+.mn-media-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; margin-left: 6px; }
+.mn-media-text b { font-size: 28px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mn-media-text span:last-child { color: var(--mute); font-size: 18px; }
+
+.mn-palette { left: 32px; right: 32px; top: 630px; bottom: 26px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 64px 1fr; }
+.mn-search { grid-column: 1 / 3; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-bottom: 1px solid var(--line); }
+.mn-search-i { font-size: 26px; color: var(--mute); }
+.mn-search-q { flex: 1; font-size: 22px; color: var(--mute); }
+.mn-search-q b { color: var(--text); font-weight: 500; }
+.mn-clear { height: 44px; }
+.mn-list { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 72px; padding: 8px; gap: 2px 8px; min-height: 0; overflow: hidden; }
+.mn-item { display: flex; align-items: center; gap: 14px; padding: 0 14px; border-radius: 12px; text-align: left; font-size: 20px; }
+.mn-item:active, .mn-item:first-child { background: #17181c; }
+.mn-item:disabled { opacity: 0.4; }
+.mn-item-t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mn-tag { font: 500 14px "Geist Mono Variable", monospace; color: var(--mute); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); }
+.mn-tag-on { color: #4cb782; border-color: rgba(76, 183, 130, 0.4); }
+.mn-enter { color: #3a3d46; font-size: 20px; }
+.mn-glyph { width: 44px; height: 44px; border-radius: 10px; object-fit: contain; font-size: 22px; background: #17181c; flex: none; }
+img.mn-glyph { background: none; }
+.mn-letters { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 12px 16px; border-left: 1px solid var(--line); align-content: center; }
+.mn-letters button { height: 66px; border-radius: 12px; border: 1px solid var(--line); background: #131417; font: 500 24px "Geist Mono Variable", monospace; }
+.mn-letters button[data-on="true"] { background: var(--indigo); border-color: var(--indigo); }
+.mn-palette .mn-list { grid-column: 1; grid-template-columns: 1fr; }
+
+.mn-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 18px; padding: 0 26px; background: var(--bg); border-top: 1px solid var(--line); }
+.mn-strip-home { flex: none; }
+.mn-strip-speed { font-size: 64px; font-weight: 600; letter-spacing: -0.05em; display: flex; align-items: baseline; gap: 6px; }
+.mn-strip-speed small { font: 500 16px "Geist Mono Variable", monospace; color: var(--mute); letter-spacing: 0; }
+.mn-strip-road { width: 220px; height: 120px; }
+.mn-strip-cam { width: 190px; height: 108px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+.mn-strip-cam .camfeed { width: 100%; height: 100%; }
+.mn-strip-app { width: 88px; height: 88px; border-radius: 18px; border: 1px solid var(--line); display: grid; place-items: center; }
+.mn-strip-app[data-active="true"] { border-color: var(--indigo); box-shadow: 0 0 16px rgba(94, 106, 210, 0.5); }
+.mn-strip .mn-time { margin-left: auto; }

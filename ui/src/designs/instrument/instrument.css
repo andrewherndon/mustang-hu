@@ -1,0 +1,58 @@
+.ti { --body: #d9d9d5; --ink: #1d1d1b; --orange: #ff5a1f; position: absolute; inset: 0; color: var(--ink); font-family: "Geist Mono Variable", monospace;
+  background: linear-gradient(#e6e6e2, #cfcfcb); }
+.ti button { color: inherit; font-family: inherit; }
+
+.ti-brand { position: absolute; left: 44px; top: 18px; font: 600 18px "Inter Tight Variable", sans-serif; letter-spacing: 0.2em; }
+.ti-brand b { color: var(--orange); }
+.ti-brand span { margin-left: 14px; font: 400 15px "Geist Mono Variable", monospace; letter-spacing: 0.04em; color: #77776f; }
+
+.ti-screen { position: absolute; left: 40px; top: 56px; width: 930px; height: 500px; padding: 14px; border-radius: 22px;
+  background: linear-gradient(#bdbdb8, #e9e9e5); box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.35), 0 1px 0 #fff; }
+.ti-oled { width: 100%; height: 100%; border-radius: 12px; background: #000; color: #fff; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; overflow: hidden; }
+.ti-gauges { display: grid; grid-template-columns: 1fr 1.25fr 1fr 1fr; gap: 14px; align-items: end; }
+.ti-gauge { position: relative; display: flex; flex-direction: column; align-items: center; }
+.ti-gauge svg { width: 150px; height: 150px; }
+.ti-gauge[data-big="true"] svg { width: 190px; height: 190px; }
+.ti-g-text { display: flex; align-items: baseline; gap: 6px; margin-top: 6px; }
+.ti-g-text b { font-size: 36px; font-weight: 600; }
+.ti-gauge[data-big="true"] .ti-g-text b { font-size: 46px; }
+.ti-g-text span { font-size: 15px; color: #888; }
+.ti-g-label { position: absolute; top: 0; left: 6px; font-size: 15px; font-weight: 600; }
+.ti-oled-row { flex: 1; display: grid; grid-template-columns: 250px 1fr auto; gap: 20px; min-height: 0; }
+.ti-cam { position: relative; border: 2px solid #333; border-radius: 6px; overflow: hidden; }
+.ti-cam .camfeed { position: absolute; inset: 0; }
+.ti-cam span { position: absolute; left: 6px; top: 4px; font-size: 13px; color: #25c25a; }
+.ti-track { display: flex; flex-direction: column; min-width: 0; }
+.ti-track-k { font-size: 15px; color: #25c25a; }
+.ti-track-t { font: 600 30px "Inter Tight Variable", sans-serif; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ti-track-a { font-size: 16px; color: #888; }
+.ti-wave { flex: 1; display: flex; align-items: center; gap: 3px; margin-top: 8px; }
+.ti-wave i { flex: 1; background: #f2f2f2; border-radius: 2px; transition: height 400ms; }
+.ti-clock { font-size: 54px; font-weight: 600; color: var(--orange); align-self: end; }
+
+.ti-knobs { position: absolute; right: 40px; top: 56px; width: 400px; height: 500px; display: grid; grid-template-columns: 1fr 1fr; place-items: center; }
+.ti-knob-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; font-size: 17px; font-weight: 600; letter-spacing: 0.1em; }
+.ti-knob { width: 160px; height: 160px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, #f4f4f1, #bdbdb8 75%); box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22), inset 0 2px 0 #fff; }
+.ti-knob-cap { width: 112px; height: 112px; border-radius: 50%; background: var(--k); position: relative; box-shadow: inset 0 -6px 12px rgba(0, 0, 0, 0.25), inset 0 4px 6px rgba(255, 255, 255, 0.35), 0 4px 8px rgba(0, 0, 0, 0.25); transition: transform 80ms; }
+.ti-knob-cap i { position: absolute; left: 50%; top: 10px; width: 8px; height: 26px; margin-left: -4px; border-radius: 4px; background: rgba(0, 0, 0, 0.55); }
+.ti-knob-wrap:nth-child(3) .ti-knob-cap i { background: rgba(0, 0, 0, 0.4); }
+
+.ti-keys { position: absolute; left: 40px; right: 40px; bottom: 36px; height: 330px; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: 1fr 1fr; gap: 16px; }
+.ti-key { position: relative; border-radius: 16px; background: linear-gradient(#f3f3f0, #dcdcd8); box-shadow: 0 6px 0 #a9a9a4, 0 10px 16px rgba(0, 0, 0, 0.18), inset 0 1px 0 #fff;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; padding: 14px 16px; font-size: 18px; font-weight: 500; text-align: left; transition: transform 60ms, box-shadow 60ms; }
+.ti-key:active { transform: translateY(5px); box-shadow: 0 1px 0 #a9a9a4, 0 3px 6px rgba(0, 0, 0, 0.18), inset 0 1px 0 #fff; }
+.ti-key:disabled { opacity: 0.5; }
+.ti-key[data-accent="true"] { background: linear-gradient(#ff7a45, var(--orange)); box-shadow: 0 6px 0 #c23f0f, 0 10px 16px rgba(0, 0, 0, 0.18); color: #fff; }
+.ti-key i { position: absolute; right: 14px; top: 14px; width: 12px; height: 12px; border-radius: 50%; background: #bdbdb8; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3); }
+.ti-key[data-running="true"] i { background: #25c25a; box-shadow: 0 0 8px #25c25a; }
+.ti-key-g { width: 54px; height: 54px; object-fit: contain; font-size: 30px; }
+.ti-key[data-accent="true"] .ti-key-g { filter: brightness(10) !important; }
+.ti-key span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+.ti-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 16px; padding: 0 24px 10px; background: linear-gradient(#e6e6e2, #cfcfcb); }
+.ti-strip-key { width: 116px; height: 108px; flex: none; }
+.ti-strip-oled { flex: 1; height: 112px; border-radius: 12px; background: #000; color: #fff; display: flex; align-items: center; gap: 12px; padding: 0 20px; box-shadow: 0 0 0 8px #c4c4bf, inset 0 0 0 1px #222; }
+.ti-strip-oled b { font-size: 50px; font-weight: 600; }
+.ti-strip-oled span { font-size: 14px; color: #888; margin-right: 14px; }
+.ti-strip-cam { width: 160px; height: 90px; border: 2px solid #333; border-radius: 4px; overflow: hidden; margin-left: auto; margin-right: 20px; }
+.ti-strip-cam .camfeed { width: 100%; height: 100%; }

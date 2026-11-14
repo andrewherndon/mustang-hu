@@ -1,0 +1,50 @@
+.dm { --red: #d71921; --line: #262626; position: absolute; inset: 0; background: #000; color: #fff; font-family: "Inter Tight Variable", sans-serif; }
+.dm button { color: inherit; font-family: inherit; }
+.dm-label { font: 500 18px "Geist Mono Variable", monospace; letter-spacing: 0.08em; color: #9a9a9a; }
+.dm-red { color: var(--red); }
+.dm-fill { flex: 1; }
+.dm-round { width: 84px; height: 84px; border-radius: 50%; border: 1.5px solid #3a3a3a; font-size: 28px; display: grid; place-items: center; }
+.dm-round:active { background: #fff; color: #000 !important; }
+.dm-round-red { background: var(--red); border-color: var(--red); }
+
+.dm-top { position: absolute; left: 44px; right: 44px; top: 34px; display: flex; align-items: center; gap: 28px; }
+.dm-set { width: 72px; height: 72px; font-size: 26px; }
+
+.dm-speed { position: absolute; left: 44px; top: 150px; display: flex; align-items: flex-end; gap: 24px; }
+.dm-speed-u { display: flex; flex-direction: column; gap: 14px; padding-bottom: 8px; }
+.dm-gear { width: 72px; height: 72px; border-radius: 50%; background: #fff; color: #000; display: grid; place-items: center; font-size: 36px; font-weight: 700; }
+
+.dm-glyph { position: absolute; left: 44px; top: 410px; display: flex; align-items: center; gap: 22px; }
+.dm-glyph-svg { width: 230px; height: 230px; }
+
+.dm-cam { position: absolute; right: 44px; top: 130px; width: 640px; height: 420px; border-radius: 34px; overflow: hidden; border: 1.5px solid var(--line); }
+.dm-cam .camfeed, .dm-strip-cam .camfeed { position: absolute; inset: 0; }
+.dm-cam-dots { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle, transparent 0 1.6px, #000 2.3px) 0 0 / 6px 6px; }
+.dm-cam-l { position: absolute; left: 22px; bottom: 18px; color: #fff; }
+
+.dm-widgets { position: absolute; left: 330px; right: 44px; top: 576px; height: 170px; display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 16px; }
+.dm-w { border-radius: 28px; background: #111; border: 1.5px solid var(--line); padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.dm-w b { font-size: 46px; font-weight: 500; letter-spacing: -0.02em; }
+.dm-bar { display: flex; gap: 5px; }
+.dm-bar i { width: 12px; height: 12px; border-radius: 50%; background: #262626; }
+.dm-bar i[data-on="true"] { background: #fff; }
+.dm-w-media { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto auto; column-gap: 16px; row-gap: 2px; }
+.dm-w-media .dm-label { grid-column: 1; }
+.dm-media-t { grid-column: 1; font-size: 34px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dm-media-a { grid-column: 1; font: 400 18px "Geist Mono Variable", monospace; color: #9a9a9a; }
+.dm-media-b { grid-column: 2; grid-row: 1 / 4; display: flex; gap: 10px; align-items: center; }
+
+.dm-apps { position: absolute; left: 44px; right: 44px; bottom: 30px; height: 170px; display: flex; justify-content: space-between; }
+.dm-app { width: 130px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.dm-app:disabled { opacity: 0.35; }
+.dm-app-c { width: 108px; height: 108px; border-radius: 50%; background: #161616; border: 1.5px solid var(--line); display: grid; place-items: center; position: relative; }
+.dm-app[data-running="true"] .dm-app-c::after { content: ""; position: absolute; top: 4px; right: 10px; width: 14px; height: 14px; border-radius: 50%; background: var(--red); }
+.dm-app:active .dm-app-c { background: #fff; }
+.dm-glyph-i { width: 52px; height: 52px; object-fit: contain; font-size: 34px; color: #fff; }
+.dm-app-t { font: 500 16px "Geist Mono Variable", monospace; color: #bbb; white-space: nowrap; max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+
+.dm-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 20px; padding: 0 30px; background: #000; border-top: 1.5px solid var(--line); }
+.dm-strip-home { color: var(--red) !important; font-size: 36px; }
+.dm-strip-cam { position: relative; width: 180px; height: 104px; border-radius: 20px; overflow: hidden; border: 1.5px solid var(--line); }
+.dm-strip-app { width: 92px; height: 92px; }
+.dm-strip-app[data-active="true"] { border-color: #fff; }

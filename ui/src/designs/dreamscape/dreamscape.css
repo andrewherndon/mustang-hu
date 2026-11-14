@@ -1,0 +1,45 @@
+.ds { position: absolute; inset: 0; color: #fff; font-family: "Geist Variable", sans-serif; background: #1d2433; overflow: hidden; }
+.ds button { color: inherit; font-family: inherit; }
+.ds-art { position: absolute; inset: -4%; background-size: cover; background-position: center; opacity: 0; transition: opacity 2.5s ease;
+  animation: ds-drift 70s ease-in-out infinite alternate; }
+.ds-art[data-on="true"] { opacity: 1; }
+@keyframes ds-drift { from { transform: scale(1.02) translate(-1.2%, 0.6%); } to { transform: scale(1.1) translate(1.2%, -0.8%); } }
+.ds-veil { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 14, 28, 0.35), transparent 30%, transparent 55%, rgba(10, 14, 28, 0.55)); }
+.ds-top { position: absolute; left: 64px; top: 50px; text-shadow: 0 2px 30px rgba(0, 0, 0, 0.25); }
+.ds-time { font: 400 200px/0.85 "Instrument Serif", serif; letter-spacing: -0.03em; }
+.ds-greet { font: 400 40px "Instrument Serif", serif; margin-top: 14px; }
+.ds-greet em { font-style: italic; }
+.ds-greet span { display: block; font: 400 20px "Geist Variable", sans-serif; opacity: 0.8; margin-top: 4px; }
+.ds-scene { position: absolute; right: 64px; top: 60px; text-align: right; display: flex; flex-direction: column; font-size: 20px; opacity: 0.9; height: 90px; justify-content: center; }
+.ds-scene small { font-size: 16px; opacity: 0.75; }
+.ds-cam { position: absolute; right: 64px; top: 180px; width: 420px; height: 250px; border-radius: 26px; overflow: hidden;
+  box-shadow: 0 30px 60px rgba(10, 14, 28, 0.35); border: 1px solid rgba(255, 255, 255, 0.35); }
+.ds-cam .camfeed { width: 100%; height: 100%; }
+.ds-speed { position: absolute; left: 64px; bottom: 190px; display: flex; align-items: flex-end; gap: 18px; text-shadow: 0 2px 30px rgba(0, 0, 0, 0.3); }
+.ds-speed b { font: 400 150px/0.8 "Instrument Serif", serif; }
+.ds-speed span { font-size: 20px; line-height: 1.4; opacity: 0.9; padding-bottom: 10px; }
+.ds-media { position: absolute; right: 64px; bottom: 190px; text-align: right; display: flex; flex-direction: column; align-items: flex-end; text-shadow: 0 2px 24px rgba(0, 0, 0, 0.3); }
+.ds-media > span { font-size: 17px; opacity: 0.8; }
+.ds-media b { font: 400 54px/1 "Instrument Serif", serif; font-style: italic; margin-top: 4px; }
+.ds-media small { font-size: 20px; opacity: 0.85; }
+.ds-media div { display: flex; gap: 8px; margin-top: 14px; }
+.ds-media div button { width: 80px; height: 80px; border-radius: 50%; font-size: 26px; background: rgba(255, 255, 255, 0.16); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.3); }
+.ds-dock { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); height: 120px; padding: 0 16px; display: flex; align-items: center; gap: 10px; border-radius: 60px;
+  background: rgba(255, 255, 255, 0.14); backdrop-filter: blur(24px) saturate(1.3); border: 1px solid rgba(255, 255, 255, 0.3); }
+.ds-dock button { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; position: relative; }
+.ds-dock button:active { background: rgba(255, 255, 255, 0.2); }
+.ds-dock button:disabled { opacity: 0.4; }
+.ds-dock button[data-running="true"]::after { content: ""; position: absolute; bottom: 4px; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+.ds-dock-sep { width: 1px; height: 60px; background: rgba(255, 255, 255, 0.35); }
+.ds-glyph { width: 64px; height: 64px; object-fit: contain; font-size: 32px; border-radius: 18px; }
+
+.ds-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 18px; padding: 0 30px; background: rgba(15, 20, 35, 0.35); backdrop-filter: blur(24px); border-top: 1px solid rgba(255, 255, 255, 0.2); }
+.ds-strip-home { height: 84px; padding: 0 28px; border-radius: 42px; background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.3); font-size: 22px; }
+.ds-strip-speed { font: 400 84px/1 "Instrument Serif", serif; display: flex; align-items: baseline; gap: 8px; }
+.ds-strip-speed span { font: 400 17px "Geist Variable", sans-serif; opacity: 0.8; }
+.ds-strip-cam { width: 186px; height: 106px; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.3); }
+.ds-strip-cam .camfeed { width: 100%; height: 100%; }
+.ds-strip-app { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; }
+.ds-strip-app[data-active="true"] { background: rgba(255, 255, 255, 0.22); }
+.ds-strip-time { margin-left: auto; font: 400 70px "Instrument Serif", serif; }
