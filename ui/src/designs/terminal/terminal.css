@@ -1,0 +1,62 @@
+.tm { --bg: #1d2021; --fg: #ebdbb2; --dim: #665c54; --g: #b8bb26; --y: #fabd2f; --r: #fb4934; --b: #83a598; --a: #fe8019;
+  position: absolute; inset: 0; background: var(--bg); color: var(--fg); font: 400 18px/1.35 "IBM Plex Mono", monospace; }
+.tm button { color: inherit; font: inherit; }
+.tm b { color: var(--y); font-weight: 600; }
+
+.tm-panes { position: absolute; left: 0; right: 0; top: 0; height: 710px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.tm-pane { position: relative; border-right: 1px solid var(--dim); border-bottom: 1px solid var(--dim); padding: 34px 18px 12px; overflow: hidden; min-width: 0; min-height: 0; }
+.tm-pane:nth-child(2n) { border-right: 0; }
+.tm-title { position: absolute; left: 0; right: 0; top: 0; height: 26px; padding: 0 10px; background: #282828; color: var(--dim); font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.tm-title span { color: var(--bg); background: var(--b); padding: 0 6px; }
+
+.tm-fetch { display: flex; gap: 18px; }
+.tm-ascii { margin: 6px 0 0; color: var(--r); font: 600 13px/1.25 "IBM Plex Mono", monospace; white-space: pre; }
+.tm-info { font-size: 16px; line-height: 1.45; }
+.tm-info b { color: var(--g); }
+.tm-swatch { display: flex; gap: 0; margin-top: 8px; }
+.tm-swatch i { width: 26px; height: 18px; }
+
+.tm-meter { white-space: pre; font-size: 17px; line-height: 1.6; }
+.tm-meter-k { color: var(--b); font-weight: 600; margin-right: 6px; }
+.tm-g { color: var(--g); } .tm-y { color: var(--y); } .tm-r { color: var(--r); } .tm-dim { color: var(--dim); }
+.tm-meter-l { color: var(--fg); }
+.tm-htop-sum { margin-top: 10px; font-size: 16px; line-height: 1.6; }
+
+.tm-cam { padding: 26px 0 0; }
+.tm-cam-feed { position: absolute; inset: 26px 0 0 0; }
+.tm-cam-feed .camfeed { width: 100%; height: 100%; }
+.tm-log-lines { font-size: 14.5px; line-height: 1.45; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; white-space: pre; }
+.tm-l-info { color: var(--fg); } .tm-l-warn { color: var(--a); } .tm-l-dim { color: var(--dim); }
+
+.tm-cmd { position: absolute; left: 0; right: 0; top: 710px; bottom: 34px; padding: 12px 18px; display: flex; flex-direction: column; gap: 10px; }
+.tm-prompt { display: flex; align-items: center; gap: 0; white-space: pre; font-size: 20px; }
+.tm-p-user { color: var(--g); font-weight: 600; } .tm-p-dir { color: var(--b); font-weight: 600; }
+.tm-cursor { animation: tm-blink 1s steps(1) infinite; color: var(--fg); }
+@keyframes tm-blink { 50% { opacity: 0; } }
+.tm-mpc { margin-left: auto; color: var(--dim); display: flex; align-items: center; gap: 8px; }
+.tm-mpc button { height: 56px; padding: 0 16px; border: 1px solid var(--dim); color: var(--b); }
+.tm-apps { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
+.tm-apps button { height: 64px; padding: 0 16px; background: #282828; border: 1px solid #3c3836; font-size: 18px; color: var(--fg); }
+.tm-apps button[data-running="true"] { color: var(--g); border-color: var(--g); }
+.tm-apps button:disabled { color: var(--dim); }
+.tm-apps button:active, .tm-mpc button:active { background: var(--fg); color: var(--bg); }
+
+.tm-bar, .tm-strip-row:first-child { display: flex; align-items: center; gap: 10px; background: var(--g); color: var(--bg); font-size: 16px; }
+.tm-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 34px; padding: 0 10px; }
+.tm-bar-s { font-weight: 600; }
+.tm-bar-w { background: var(--bg); color: var(--g); padding: 0 6px; }
+.tm-bar-fill { flex: 1; }
+
+.tm-strip { position: absolute; left: 0; right: 0; top: 0; display: flex; flex-direction: column; border-bottom: 1px solid var(--dim); }
+.tm-strip-row:first-child { height: 64px; padding: 0 8px; }
+.tm-strip-row:first-child button { height: 56px; padding: 0 12px; }
+.tm-strip-row:first-child button[data-active="true"] { background: var(--bg); color: var(--g); }
+.tm-strip-t { font-size: 22px; font-weight: 600; padding-right: 8px; }
+.tm-strip-g { flex: 1; display: flex; align-items: center; gap: 22px; padding: 0 16px; }
+.tm-strip-speed { font-size: 52px; font-weight: 600; color: var(--y); white-space: pre; }
+.tm-strip-speed small { font-size: 16px; color: var(--dim); margin-left: 6px; }
+.tm-strip-cam { margin-left: auto; width: 130px; height: 74px; }
+.tm-strip-cam .camfeed { width: 100%; height: 100%; }
+
+.tm-matrix { position: absolute; inset: 0; z-index: 9; background: #000; }
+.tm-matrix canvas { width: 100%; height: 100%; }

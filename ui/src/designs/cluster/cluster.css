@@ -1,0 +1,66 @@
+.cl { --blue: #2b8cff; --card: rgba(255, 255, 255, 0.055); --line: rgba(255, 255, 255, 0.08); position: absolute; inset: 0; color: #e8eef8;
+  background: radial-gradient(90% 80% at 30% 20%, #16233b, #070b13 70%); font-family: "Space Grotesk Variable", sans-serif; }
+.cl button { color: inherit; font-family: inherit; }
+
+.cl-left { position: absolute; left: 0; top: 0; bottom: 0; width: 820px; overflow: hidden; }
+.cl-road { position: absolute; left: -60px; right: -60px; top: 200px; bottom: 0;
+  -webkit-mask: linear-gradient(transparent, #000 18%); mask: linear-gradient(transparent, #000 18%); }
+.cl-speed { position: absolute; left: 0; right: 0; top: 34px; text-align: center; }
+.cl-speed-n { font-size: 150px; font-weight: 600; letter-spacing: -0.04em; line-height: 0.95; font-variant-numeric: tabular-nums; }
+.cl-speed-u { font-size: 20px; font-weight: 600; letter-spacing: 0.3em; color: rgba(232, 238, 248, 0.5); }
+.cl-prnd { position: absolute; left: 44px; top: 56px; display: flex; flex-direction: column; gap: 6px; font-size: 28px; font-weight: 600; }
+.cl-prnd span { color: rgba(232, 238, 248, 0.25); }
+.cl-prnd span[data-on="true"] { color: #fff; }
+.cl-prnd small { font-size: 16px; color: var(--blue); }
+.cl-lead { position: absolute; right: 44px; top: 70px; padding: 10px 16px; border-radius: 14px; font-size: 18px; background: var(--card); border: 1px solid var(--line); text-align: right; }
+.cl-lead b { display: block; font-size: 30px; }
+.cl-lead[data-close="true"] { background: rgba(255, 70, 70, 0.25); border-color: #ff4646; }
+.cl-stats { position: absolute; left: 36px; right: 36px; bottom: 26px; display: flex; justify-content: space-between; font-size: 16px; color: rgba(232, 238, 248, 0.6); }
+.cl-stats b { font-size: 26px; color: #fff; font-weight: 600; margin-right: 4px; }
+.cl-ai { position: absolute; left: 44px; top: 230px; font-size: 13px; letter-spacing: 0.18em; color: var(--blue); }
+
+.cl-right { position: absolute; left: 820px; right: 0; top: 0; bottom: 0; padding: 20px 28px 24px 8px; display: flex; flex-direction: column; gap: 14px; }
+.cl-status { height: 56px; flex: none; display: flex; align-items: center; gap: 18px; font-size: 20px; color: rgba(232, 238, 248, 0.7); }
+.cl-time { font-size: 30px; font-weight: 600; color: #fff; }
+.cl-fill { flex: 1; }
+.cl-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff4646; }
+.cl-dot[data-on="true"] { background: #33d17a; }
+.cl-status button { width: 64px; height: 56px; border-radius: 16px; background: var(--card); font-size: 26px; }
+.cl-card { position: relative; border-radius: 22px; overflow: hidden; background: var(--card); border: 1px solid var(--line); flex: none; }
+.cl-cam { height: 300px; }
+.cl-cam .camfeed { position: absolute; inset: 0; }
+.cl-tag { position: absolute; left: 14px; top: 12px; font-size: 13px; letter-spacing: 0.15em; padding: 5px 10px; border-radius: 8px; background: rgba(0, 0, 0, 0.5); }
+.cl-media { height: 104px; display: flex; align-items: center; gap: 10px; padding: 0 14px; }
+.cl-media-art { width: 76px; height: 76px; border-radius: 14px; background: linear-gradient(135deg, var(--blue), #7b5cff); display: grid; place-items: center; font-size: 32px; flex: none; }
+.cl-media-text { flex: 1; min-width: 0; }
+.cl-media-t { font-size: 22px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cl-media-a { font-size: 16px; color: rgba(232, 238, 248, 0.55); }
+.cl-media button { width: 72px; height: 72px; border-radius: 50%; font-size: 24px; flex: none; }
+.cl-media .cl-play { background: #fff; color: #0b1220 !important; }
+.cl-apps { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; min-height: 0; }
+.cl-app { border-radius: 18px; background: var(--card); border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: 14px; position: relative; }
+.cl-app:active { background: rgba(43, 140, 255, 0.25); }
+.cl-app:disabled { opacity: 0.35; }
+.cl-app[data-running="true"]::after { content: ""; position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+.cl-glyph { width: 52px; height: 52px; border-radius: 12px; object-fit: contain; font-size: 26px; background: rgba(255, 255, 255, 0.08); }
+.cl-controls { height: 76px; flex: none; display: flex; gap: 10px; align-items: center; }
+.cl-controls button { width: 76px; height: 76px; border-radius: 18px; background: var(--card); font-size: 32px; }
+.cl-vol { flex: 1; height: 76px; border-radius: 18px; background: var(--card); position: relative; overflow: hidden; }
+.cl-vol span { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(43, 140, 255, 0.35); }
+.cl-vol i { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; font-size: 16px; letter-spacing: 0.15em; }
+
+.cl-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 18px; padding: 0 22px; background: #070b13; border-top: 1px solid var(--line); }
+.cl-strip-home { width: 96px; height: 96px; border-radius: 22px; background: var(--card); font-size: 40px; }
+.cl-strip-road { width: 300px; height: 140px; }
+.cl-strip-speed { font-size: 72px; font-weight: 600; letter-spacing: -0.03em; display: flex; flex-direction: column; line-height: 0.95; min-width: 130px; }
+.cl-strip-speed small { font-size: 14px; letter-spacing: 0.2em; color: rgba(232, 238, 248, 0.5); }
+.cl-strip-cam { width: 190px; height: 108px; border-radius: 14px; overflow: hidden; }
+.cl-strip-cam .camfeed { width: 100%; height: 100%; }
+.cl-strip-apps { display: flex; gap: 10px; }
+.cl-strip-apps button { width: 88px; height: 88px; border-radius: 20px; background: var(--card); display: grid; place-items: center; font-size: 30px; }
+.cl-strip-apps button[data-active="true"] { box-shadow: inset 0 0 0 2px var(--blue); }
+.cl-strip-time { margin-left: auto; font-size: 44px; font-weight: 600; }
+.cl-prnd small { display: none; }
+.cl-ai { top: 250px; }
+.cl-left::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: linear-gradient(transparent, rgba(7, 11, 19, 0.9)); pointer-events: none; }
+.cl-stats { z-index: 1; }

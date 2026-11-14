@@ -1,0 +1,76 @@
+.ho { --c: #5ff8ff; --c2: rgba(95, 248, 255, 0.35); --c3: rgba(95, 248, 255, 0.1); --warn: #ff9d3b;
+  position: absolute; inset: 0; background: radial-gradient(80% 70% at 50% 45%, #052a35, #01090d 75%); color: var(--c); font: 500 18px "Rajdhani", sans-serif; overflow: hidden; }
+.ho button { color: inherit; font-family: inherit; }
+.ho-hex { position: absolute; inset: 0; opacity: 0.12; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cpath d='M28 0 56 16v32L28 64 0 48V16zM28 64v33' fill='none' stroke='%235ff8ff' stroke-width='1'/%3E%3C/svg%3E"); }
+.ho-scan { position: absolute; left: 0; right: 0; height: 160px; z-index: 7; pointer-events: none; background: linear-gradient(transparent, rgba(95, 248, 255, 0.06), transparent); animation: ho-scan 7s linear infinite; }
+@keyframes ho-scan { from { top: -160px; } to { top: 960px; } }
+.ho-label { font: 600 13px "Orbitron Variable", sans-serif; letter-spacing: 0.18em; color: var(--c2); }
+
+.ho-top { position: absolute; left: 30px; right: 30px; top: 20px; height: 44px; display: flex; align-items: center; gap: 26px; border-bottom: 1px solid var(--c2); font-size: 16px; letter-spacing: 0.08em; color: var(--c2); }
+.ho-brand { font: 800 20px "Orbitron Variable", sans-serif; color: var(--c); letter-spacing: 0.12em; }
+.ho-brand em { font-style: normal; font-weight: 400; font-size: 13px; }
+.ho-fill { flex: 1; }
+.ho-ru { color: var(--c); }
+
+.ho-core { position: absolute; left: 470px; top: 80px; width: 500px; height: 500px; }
+.ho-ring { position: absolute; border-radius: 50%; border: 1.5px solid var(--c2); }
+.ho-ring1 { inset: 30px; border-style: dashed; animation: ho-rot 40s linear infinite; }
+.ho-ring2 { inset: 60px; border-width: 3px; border-color: var(--c) transparent var(--c) transparent; opacity: 0.6; animation: ho-rot 18s linear infinite reverse; }
+.ho-ring3 { inset: 0; transform: rotateX(70deg); border-color: var(--c); box-shadow: 0 0 20px var(--c2); animation: ho-rot3 12s linear infinite; }
+@keyframes ho-rot { to { transform: rotate(360deg); } }
+@keyframes ho-rot3 { from { transform: rotateX(72deg) rotate(0); } to { transform: rotateX(72deg) rotate(360deg); } }
+.ho-wire { position: absolute; left: 30px; top: 0; width: 440px; height: 440px; }
+.ho-gauge { position: absolute; inset: 0; }
+.ho-gauge line { stroke: var(--c3); stroke-width: 3; }
+.ho-gauge line[data-on="true"] { stroke: var(--c); filter: drop-shadow(0 0 4px var(--c)); }
+.ho-speed { position: absolute; left: 0; right: 0; bottom: 30px; text-align: center; font: 700 76px/1 "Orbitron Variable", sans-serif; text-shadow: 0 0 18px var(--c); display: flex; flex-direction: column; align-items: center; }
+.ho-speed span { font: 600 15px "Orbitron Variable", sans-serif; letter-spacing: 0.2em; color: var(--c2); margin-top: 6px; text-shadow: none; }
+
+.ho-cam { position: absolute; left: 30px; top: 90px; width: 410px; }
+.ho-cam-in { position: relative; width: 410px; height: 356px; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
+.ho-cam-in .camfeed { position: absolute; inset: 0; }
+.ho-cam .ho-label { display: block; margin-top: 10px; text-align: center; }
+.ho-ret { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ho-ret path { fill: none; stroke: var(--c); stroke-width: 0.6; vector-effect: non-scaling-stroke; }
+.ho-ret text { fill: var(--c); font: 600 3px "Rajdhani", sans-serif; }
+.ho-ret-near path { stroke: var(--warn); } .ho-ret-near text { fill: var(--warn); }
+
+.ho-data { position: absolute; right: 30px; top: 90px; width: 400px; display: flex; flex-direction: column; gap: 12px; }
+.ho-ro { display: grid; grid-template-columns: 1fr auto; row-gap: 4px; }
+.ho-ro-k { font: 600 14px "Orbitron Variable", sans-serif; letter-spacing: 0.15em; color: var(--c2); }
+.ho-ro-v { font-size: 24px; font-weight: 600; }
+.ho-ro-bar { grid-column: 1 / 3; height: 6px; background: var(--c3); clip-path: polygon(0 0, 100% 0, 98% 100%, 0 100%); }
+.ho-ro-bar i { display: block; height: 100%; background: var(--c); box-shadow: 0 0 8px var(--c); transition: width 120ms; }
+
+.ho-media { position: absolute; right: 30px; top: 460px; width: 400px; padding: 14px 16px; border: 1px solid var(--c2); background: rgba(95, 248, 255, 0.04);
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); }
+.ho-media-t { font: 700 22px "Orbitron Variable", sans-serif; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 0 10px var(--c2); }
+.ho-media-a { font-size: 16px; color: var(--c2); }
+.ho-media-b { display: flex; gap: 10px; margin-top: 10px; }
+.ho-media-b button { flex: 1; height: 64px; border: 1px solid var(--c); font-size: 22px; background: var(--c3); }
+.ho-media-b button:active { background: var(--c); color: #01090d; }
+
+.ho-comb { position: absolute; left: 40px; right: 40px; bottom: 34px; height: 300px; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 0 8px; }
+.ho-cell { width: 170px; height: 146px; margin-bottom: -16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: linear-gradient(var(--c3), rgba(95, 248, 255, 0.04)); font: 600 14px "Orbitron Variable", sans-serif; letter-spacing: 0.06em; position: relative; }
+.ho-cell:nth-child(n+7) { transform: translateX(0); }
+.ho-cell::before { content: ""; position: absolute; inset: 0; clip-path: inherit; border: 2px solid var(--c2); background: transparent; }
+.ho-cell[data-running="true"], .ho-cell[data-active="true"] { background: linear-gradient(rgba(95, 248, 255, 0.28), rgba(95, 248, 255, 0.08)); }
+.ho-cell:disabled { opacity: 0.3; }
+.ho-cell:active { background: var(--c2); }
+.ho-glyph { width: 48px; height: 48px; object-fit: contain; font-size: 30px; }
+
+.ho-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 18px; padding: 0 24px; border-top: 1px solid var(--c); background: rgba(1, 9, 13, 0.92); box-shadow: 0 -4px 30px var(--c3); }
+.ho-strip-home { height: 90px; padding: 0 22px; border: 1px solid var(--c); font: 700 18px "Orbitron Variable", sans-serif; letter-spacing: 0.1em; background: var(--c3); }
+.ho-strip-speed { font: 700 60px/1 "Orbitron Variable", sans-serif; text-shadow: 0 0 14px var(--c); display: flex; align-items: baseline; gap: 6px; }
+.ho-strip-speed small { font-size: 14px; color: var(--c2); }
+.ho-strip-cam { position: relative; width: 200px; height: 112px; clip-path: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%); }
+.ho-strip-cam .camfeed { position: absolute; inset: 0; }
+.ho .ho-strip-cell { width: 120px; height: 104px; margin: 0; }
+.ho-strip-time { margin-left: auto; font: 700 44px "Orbitron Variable", sans-serif; }
+
+.ho-saver { position: absolute; inset: 0; z-index: 9; background: #01090d; display: grid; place-items: center; }
+.ho-saver .ho-ring { inset: auto; width: 760px; height: 760px; left: 340px; top: 100px; }
+.ho-wire-big { position: absolute; left: 270px; top: 30px; width: 900px; height: 900px; }
+.ho-saver-t { position: absolute; bottom: 60px; font: 700 30px "Orbitron Variable", sans-serif; letter-spacing: 0.4em; text-shadow: 0 0 20px var(--c); }

@@ -6,7 +6,7 @@
  * manifest, or Google's product-logo CDN), shown on a white rounded tile.
  * An app without an icon gets a neutral tile with its initial.
  */
-const ICONS: Record<string, string> = {
+export const ICONS: Record<string, string> = {
   aa: "/icons/android_auto.png",
   stremio: "/icons/stremio.png",
   youtube: "/icons/youtube.png",

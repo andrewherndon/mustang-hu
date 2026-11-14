@@ -85,8 +85,27 @@ export const DEFAULT_STATE: DaemonState = {
  */
 export const MOCK = new URLSearchParams(location.search).has("mock");
 
+/** Mock-only URL switches for screenshots: &layout=<app> &aa &media &kb */
+function mockInitial(): DaemonState {
+  const q = new URLSearchParams(location.search);
+  if (!MOCK) return DEFAULT_STATE;
+  const s: DaemonState = { ...DEFAULT_STATE };
+  if (q.has("aa")) s.aa = { connected: true };
+  const layout = q.get("layout");
+  if (layout) {
+    s.layout = layout;
+    if (s.apps[layout]) s.apps = { ...s.apps, [layout]: { ...s.apps[layout], running: true } };
+    s.keyboard = { ...s.keyboard, available: layout !== "aa", open: q.has("kb") };
+  }
+  if (q.has("media")) {
+    s.media = { source: "android", package: "mock.spotify", app: "Spotify", title: "Midnight City", artist: "M83", album: "Hurry Up, We're Dreaming", playing: true };
+    s.androidRecent = ["mock.spotify", "mock.maps"];
+  }
+  return s;
+}
+
 export function useDaemon() {
-  const [state, setState] = useState<DaemonState>(DEFAULT_STATE);
+  const [state, setState] = useState<DaemonState>(mockInitial);
   const [online, setOnline] = useState(MOCK);
   const ws = useRef<WebSocket | null>(null);
 
@@ -175,6 +194,12 @@ export function useDaemon() {
     ws.current?.send(JSON.stringify({ type: "launchAndroid", pkg }));
   }, []);
 
+  /** Move the app slot to the top (0) or bottom (300) of the screen (physical px). */
+  const setSlot = useCallback((y: 0 | 300) => {
+    if (MOCK) setState((s) => ({ ...s, aaRect: { ...s.aaRect, y } }));
+    else ws.current?.send(JSON.stringify({ type: "setSlot", y }));
+  }, []);
+
   const setSetting = useCallback((key: "androidPreload", value: boolean) => {
     if (MOCK) setState((s) => ({ ...s, settings: { ...s.settings, [key]: value } }));
     else ws.current?.send(JSON.stringify({ type: "setSetting", key, value }));
@@ -198,5 +223,5 @@ export function useDaemon() {
     }));
   }, []);
 
-  return { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, launchAndroid, mediaControl, setSetting, mockTyped, mockSetConnected };
+  return { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, launchAndroid, mediaControl, setSetting, setSlot, mockTyped, mockSetConnected };
 }

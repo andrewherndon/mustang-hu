@@ -1,0 +1,67 @@
+.br { --ink: #0d0d0d; --bg: #f2f2f0; --hot: #ff3b00; position: absolute; inset: 0; background: var(--bg); color: var(--ink); font: 400 15px/1.2 "IBM Plex Mono", monospace; }
+.br button { color: inherit; font-family: inherit; }
+
+.br-wall { position: absolute; inset: 0; display: grid; gap: 0;
+  grid-template-columns: 290px 210px 270px 1fr 360px; grid-template-rows: 250px 230px 1fr 52px;
+  grid-template-areas: "time time speed speed apps" "rpm gear speed speed apps" "cam cam data media apps" "tick tick tick tick tick"; }
+.br-cell { position: relative; border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); overflow: hidden; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.br-cell > header { flex: none; height: 30px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-weight: 600; font-size: 13px; letter-spacing: 0.04em; border-bottom: 2px solid var(--ink); }
+.br-cell > header span { background: var(--ink); color: var(--bg); padding: 1px 5px; }
+.br-body { flex: 1; position: relative; min-height: 0; }
+.br-cell[data-inv="true"] { background: var(--ink); color: var(--bg); }
+.br-cell[data-inv="true"] > header { border-color: var(--bg); }
+.br-cell[data-inv="true"] > header span { background: var(--bg); color: var(--ink); }
+.br-cell[data-hot="true"] { background: var(--hot); }
+
+.c-time { grid-area: time; } .c-speed { grid-area: speed; } .c-rpm { grid-area: rpm; } .c-gear { grid-area: gear; }
+.c-cam { grid-area: cam; } .c-data { grid-area: data; } .c-media { grid-area: media; } .c-apps { grid-area: apps; border-right: 0; } .c-status { grid-area: media; display: none; }
+
+.br-huge { font: 400 260px/0.82 "Anton", sans-serif; letter-spacing: -0.02em; position: absolute; left: 10px; bottom: -14px; white-space: nowrap; }
+.c-time .br-huge { font-size: 210px; }
+.c-speed .br-huge { font-size: 470px; left: 20px; bottom: -40px; }
+.br-unit { position: absolute; right: 16px; top: 16px; font-size: 22px; font-weight: 600; }
+.br-big { font: 400 130px/1 "Anton", sans-serif; padding: 10px 12px 0; }
+.br-rule { position: absolute; left: 12px; right: 12px; bottom: 16px; height: 20px; border: 2px solid currentColor; }
+.br-rule i { display: block; height: 100%; background: currentColor; }
+
+.c-cam .br-body .camfeed { position: absolute; inset: 0; }
+.br-table { width: 100%; border-collapse: collapse; font-size: 17px; }
+.br-table td { padding: 6px 12px; border-bottom: 1px solid var(--ink); }
+.br-table td:last-child { text-align: right; font-weight: 600; }
+.br-table .br-hot { background: var(--hot); }
+
+.c-media .br-body { padding: 12px; display: flex; flex-direction: column; }
+.br-media-t { font: 400 46px/1 "Anton", sans-serif; word-break: break-word; }
+.br-media-a { margin-top: 6px; font-size: 15px; }
+.br-media-b { margin-top: auto; display: grid; grid-template-columns: 1fr 1.4fr 1fr; border: 2px solid var(--ink); }
+.br-media-b button { height: 84px; font-size: 22px; font-weight: 600; }
+.br-media-b button + button { border-left: 2px solid var(--ink); }
+.br-media-b button:nth-child(2) { background: var(--hot); }
+.br-media-b button:active, .br-apps button:active { background: var(--ink); color: var(--bg); }
+
+.br-apps { display: flex; flex-direction: column; overflow-y: auto; touch-action: pan-y; height: 100%; }
+.br-apps button { flex: none; height: 62px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-bottom: 1px solid var(--ink); font-size: 19px; font-weight: 600; text-align: left; }
+.br-apps button span { font-weight: 400; font-size: 14px; }
+.br-apps button em { margin-left: auto; font-style: normal; }
+.br-apps button[data-running="true"] em { color: var(--hot); }
+.br-apps button:disabled { color: #999; }
+
+.br-ticker { grid-area: tick; overflow: hidden; white-space: nowrap; background: var(--ink); color: var(--bg); display: flex; align-items: center; font: 400 26px "Anton", sans-serif; letter-spacing: 0.04em; }
+.br-ticker span { display: inline-block; animation: br-tick 40s linear infinite; }
+@keyframes br-tick { to { transform: translateX(-33.33%); } }
+
+.br-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: stretch; background: var(--bg); border-top: 2px solid var(--ink); }
+.br-strip > * { border-right: 2px solid var(--ink); }
+.br-strip-home { width: 170px; background: var(--hot); font-size: 24px; font-weight: 600; }
+.br-strip-cell, .br-strip-app { display: flex; flex-direction: column; justify-content: center; padding: 0 18px; font: 400 64px/1 "Anton", sans-serif; }
+.br-strip-cell small, .br-strip-app small { font: 600 13px "IBM Plex Mono", monospace; margin-bottom: 4px; }
+.br-strip-speed { background: var(--ink); color: var(--bg); min-width: 160px; }
+.br-strip-cam { width: 240px; position: relative; }
+.br-strip-cam .camfeed { position: absolute; inset: 0; }
+.br-strip-app { font-size: 30px; align-items: flex-start; }
+.br-strip-app[data-active="true"] { background: var(--ink); color: var(--bg); }
+.br-strip-time { margin-left: auto; border-right: 0; border-left: 2px solid var(--ink); }
+.br-apps-set { background: var(--hot); }
+.br-table td { white-space: nowrap; }
+.br .br-strip-app { font-family: "Anton", sans-serif; }
+.br-strip > :nth-last-child(2) { border-right: 0; }

@@ -7,10 +7,11 @@ interface Props {
   onClose: () => void;
   androidPreload: boolean;
   onAndroidPreload: (v: boolean) => void;
+  onDesigns: () => void;
 }
 
 /** Settings sheet over the home screen: appearance and Android. */
-export function Appearance({ appearance, onChange, onClose, androidPreload, onAndroidPreload }: Props) {
+export function Appearance({ appearance, onChange, onClose, androidPreload, onAndroidPreload, onDesigns }: Props) {
   return (
     <div className="sheet-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="sheet">
@@ -18,6 +19,11 @@ export function Appearance({ appearance, onChange, onClose, androidPreload, onAn
           <div className="sheet-title">Settings</div>
           <button className="sheet-done" onClick={onClose}>Done</button>
         </div>
+
+        <button className="sheet-toggle" onClick={onDesigns}>
+          <span>Design: Classic<small className="sheet-hint">Try other complete designs for the head unit</small></span>
+          <span>›</span>
+        </button>
 
         <div className="sheet-label">Appearance · Colour</div>
         <div className="swatches">

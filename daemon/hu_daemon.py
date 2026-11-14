@@ -49,6 +49,7 @@ Protocol (JSON text frames on ws://localhost:8765)
                    {"type": "launchAndroid", "pkg": "com.google.android.youtube"}
                    Start Android if needed, open the app and show Android in the slot.
                    {"type": "setSetting", "key": "androidPreload", "value": bool}
+                   {"type": "setSlot", "y": 0 | 300}   app slot at the top (default) or bottom
                    {"type": "media", "action": "play-pause" | "next" | "previous"}
                    Control whatever Android is playing (Spotify, YouTube, ...).
 Volume and brightness are also polled, so changes from the hardware volume
@@ -161,6 +162,9 @@ class Daemon:
         self.android_apps = []            # [{"pkg", "title", "icon"}]
         self.launch_seq = 0               # newest Android launch request wins
         self.android_front = None         # package of the Android app in front
+        # The app slot; a shell design may move it to the bottom of the screen
+        # (setSlot). Size stays 2880x1620: Android's display is fixed at that size.
+        self.slot = dict(SLOT_RECT)
         self.android_recent = []          # recently used Android apps, newest first
         self.android_booting = False      # Android is starting; the shell shows a loading screen
         self.android_lock = asyncio.Lock()
@@ -178,7 +182,7 @@ class Daemon:
             "apps": {app: {"title": spec["title"], "running": app in self.windows}
                      for app, spec in APPS.items()},
             "aa": {"connected": "aa" in self.windows},
-            "aaRect": SLOT_RECT,
+            "aaRect": self.slot,
             "keyboard": {"open": self.keyboard, "available": self.keyboard_available(),
                          "height": KEYBOARD_HEIGHT},
             "volume": self.volume,
@@ -198,8 +202,8 @@ class Daemon:
 
     def slot_rect(self):
         if self.keyboard:
-            return {**SLOT_RECT, "height": SCREEN["height"] - KEYBOARD_HEIGHT}
-        return SLOT_RECT
+            return {**self.slot, "y": 0, "height": SCREEN["height"] - KEYBOARD_HEIGHT}
+        return self.slot
 
     async def broadcast(self):
         message = json.dumps(self.state())
@@ -679,6 +683,11 @@ class Daemon:
                     await self.set_mute(bool(msg.get("muted")))
                 elif msg.get("type") == "launchAndroid" and isinstance(msg.get("pkg"), str):
                     asyncio.create_task(self.launch_android(msg["pkg"]))
+                elif msg.get("type") == "setSlot" and msg.get("y") in (0, SCREEN["height"] - SLOT_RECT["height"]):
+                    if self.slot["y"] != msg["y"]:
+                        self.slot = {**SLOT_RECT, "y": msg["y"]}
+                        await self.broadcast()
+                        asyncio.create_task(self.apply_layout())
                 elif msg.get("type") == "setSetting":
                     await self.set_setting(msg.get("key"), msg.get("value"))
                 elif msg.get("type") == "media":

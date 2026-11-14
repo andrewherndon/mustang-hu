@@ -8,6 +8,21 @@ import { Controls } from "./components/Controls";
 import { DitherBackdrop } from "./components/DitherBackdrop";
 import { Appearance } from "./components/Appearance";
 import { useAppearance } from "./theme";
+import { DesignHost } from "./designs/DesignHost";
+import { DesignSettings } from "./designs/DesignSettings";
+import { findDesign } from "./designs/registry";
+
+const DESIGN_KEY = "hu.design";
+/** Chosen design: ?design=<id> overrides (for previews), else remembered on the device. */
+function useDesign(): [string, (id: string) => void] {
+  const [design, setDesign] = useState(() => {
+    const q = new URLSearchParams(location.search).get("design");
+    if (q) return q;
+    try { return localStorage.getItem(DESIGN_KEY) ?? "classic"; } catch { return "classic"; }
+  });
+  const pick = (id: string) => { setDesign(id); try { localStorage.setItem(DESIGN_KEY, id); } catch { /* not kept */ } };
+  return [design, pick];
+}
 
 /**
  * Chromium on the Surface runs at --force-device-scale-factor=2, so the
@@ -21,7 +36,7 @@ const SCALE = 2;
 function useFitScale(width: number, height: number) {
   const [fit, setFit] = useState(1);
   useEffect(() => {
-    if (!MOCK) return;
+    if (!MOCK || new URLSearchParams(location.search).has("shot")) return;
     const update = () =>
       setFit(Math.min(window.innerWidth / width, window.innerHeight / height, 1));
     update();
@@ -32,7 +47,42 @@ function useFitScale(width: number, height: number) {
 }
 
 export function App() {
-  const { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, launchAndroid, mediaControl, setSetting, mockTyped, mockSetConnected } = useDaemon();
+  const daemon = useDaemon();
+  const [designId, setDesignId] = useState("classic");
+  const [chosen, pickDesign] = useDesign();
+  const [reverse, setReverse] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  useEffect(() => setDesignId(chosen), [chosen]);
+  const design = findDesign(designId);
+  const { appearance: ap } = useAppearance();
+  const fitScale = useFitScale(1440, 960);
+
+  const settings = (
+    <DesignSettings current={designId} onPick={pickDesign}
+                    androidPreload={daemon.state.settings.androidPreload}
+                    onAndroidPreload={(v) => daemon.setSetting("androidPreload", v)}
+                    reverse={reverse} onReverse={setReverse} onClose={() => setSettingsOpen(false)} />
+  );
+
+  if (design) {
+    return (
+      <div className="viewport" data-mock={MOCK}>
+        <div className="stage" style={{ width: 1440, height: 960, transform: `scale(${fitScale})` }}>
+          <DesignHost design={design} daemon={daemon} hue={ap.hue} motion={ap.motion}
+                      reverse={reverse} onReverse={setReverse}
+                      openSettings={() => setSettingsOpen(true)} settingsOpen={settingsOpen} settings={settings} />
+        </div>
+      </div>
+    );
+  }
+  return <ClassicShell daemon={daemon} openDesigns={() => setSettingsOpen(true)} designSheet={settingsOpen ? settings : null} />;
+}
+
+/** The original shell ("Classic" design). */
+function ClassicShell({ daemon, openDesigns, designSheet }: { daemon: ReturnType<typeof useDaemon>; openDesigns: () => void; designSheet: React.ReactNode }) {
+  const { state, online, setLayout, setKeyboard, sendKey, setVolume, setMute, setBrightness, launchAndroid, mediaControl, setSetting, setSlot, mockTyped, mockSetConnected } = daemon;
+  // Classic keeps the app slot at the top.
+  useEffect(() => { if (state.aaRect.y !== 0) setSlot(0); }, [state.aaRect.y, setSlot]);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const { appearance, update: updateAppearance } = useAppearance();
@@ -76,7 +126,8 @@ export function App() {
           {appearanceOpen && state.layout === "home" && (
             <Appearance appearance={appearance} onChange={updateAppearance} onClose={() => setAppearanceOpen(false)}
                         androidPreload={state.settings.androidPreload}
-                        onAndroidPreload={(v) => setSetting("androidPreload", v)} />
+                        onAndroidPreload={(v) => setSetting("androidPreload", v)}
+                        onDesigns={() => { setAppearanceOpen(false); openDesigns(); }} />
           )}
           {state.androidBooting && (
             <div className="android-loading" style={{ left: aa.x, top: aa.y, width: aa.width, height: aa.height }}>
@@ -130,6 +181,7 @@ export function App() {
         )}
       </div>
 
+      {designSheet}
       {MOCK && <DevBar connected={state.aa.connected} onConnected={mockSetConnected} />}
     </div>
   );

@@ -1,0 +1,47 @@
+.lm { position: absolute; inset: 0; color: #fff; font-family: "Outfit Variable", sans-serif; background: #0f1626; }
+.lm button { color: inherit; font-family: inherit; }
+.lm-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.lm-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(80% 70% at 50% 65%, transparent 50%, rgba(5, 8, 15, 0.7)); }
+.lm-card, .lm-turn, .lm-eta, .lm-speed, .lm-rail, .lm-clock {
+  position: absolute; background: rgba(16, 22, 36, 0.82); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 26px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+.lm-turn { left: 28px; top: 28px; height: 150px; padding: 0 30px 0 22px; display: flex; align-items: center; gap: 20px; background: #1f6fe0; }
+.lm-turn-arrow { font-size: 96px; line-height: 1; font-weight: 300; }
+.lm-turn-d { font-size: 52px; font-weight: 700; line-height: 1; }
+.lm-turn-s { font-size: 26px; font-weight: 500; opacity: 0.9; margin-top: 4px; }
+.lm-eta { left: 28px; top: 194px; height: 96px; display: flex; align-items: center; gap: 26px; padding: 0 24px; }
+.lm-eta div { display: flex; flex-direction: column; font-size: 14px; color: rgba(255, 255, 255, 0.55); }
+.lm-eta b { font-size: 30px; color: #34d399; font-weight: 650; }
+.lm-eta span { font-size: 16px; color: rgba(255, 255, 255, 0.55); }
+.lm-speed { left: 28px; bottom: 28px; width: 150px; height: 170px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.lm-speed-n { font-size: 76px; font-weight: 650; line-height: 0.9; }
+.lm-speed-u { font-size: 16px; color: rgba(255, 255, 255, 0.55); }
+.lm-limit { position: absolute; right: -24px; top: -24px; width: 62px; height: 62px; border-radius: 50%; background: #fff; color: #111; border: 6px solid #e5484d; display: grid; place-items: center; font-weight: 800; font-size: 22px; }
+.lm-cam { right: 130px; top: 28px; width: 400px; height: 236px; overflow: hidden; }
+.lm-cam .camfeed { position: absolute; inset: 0; }
+.lm-cam span { position: absolute; left: 14px; top: 12px; font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 8px; background: rgba(0, 0, 0, 0.5); }
+.lm-media { right: 130px; bottom: 28px; width: 400px; height: 170px; padding: 18px 22px; display: flex; flex-direction: column; }
+.lm-media-t { font-size: 26px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lm-media-a { font-size: 17px; color: rgba(255, 255, 255, 0.55); }
+.lm-media-b { margin-top: auto; display: flex; justify-content: space-between; }
+.lm-media-b button { width: 100px; height: 70px; border-radius: 18px; background: rgba(255, 255, 255, 0.07); font-size: 26px; }
+.lm-rail { right: 20px; top: 28px; bottom: 28px; width: 96px; display: flex; flex-direction: column; justify-content: space-around; align-items: center; padding: 10px 0; }
+.lm-rail button { width: 80px; height: 80px; border-radius: 20px; display: grid; place-items: center; position: relative; }
+.lm-rail button:disabled { opacity: 0.35; }
+.lm-rail button[data-running="true"]::before { content: ""; position: absolute; left: -8px; top: 30px; width: 4px; height: 20px; border-radius: 2px; background: #4da3ff; }
+.lm-glyph { width: 60px; height: 60px; border-radius: 15px; object-fit: contain; font-size: 30px; background: rgba(255, 255, 255, 0.06); }
+.lm-clock { left: 50%; transform: translateX(-50%); top: 28px; height: 60px; padding: 0 24px; display: flex; align-items: center; font-size: 24px; font-weight: 600; border-radius: 30px; }
+
+.lm-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 18px; padding: 0 24px; background: rgba(12, 17, 28, 0.92); backdrop-filter: blur(16px); }
+.lm-strip-home { height: 96px; padding: 0 28px; border-radius: 22px; background: #1f6fe0; font-size: 24px; font-weight: 650; }
+.lm-strip-turn { font-size: 26px; color: rgba(255, 255, 255, 0.7); }
+.lm-strip-turn b { color: #fff; }
+.lm-strip-speed { font-size: 60px; font-weight: 650; display: flex; align-items: baseline; gap: 4px; }
+.lm-strip-speed small { font-size: 15px; color: rgba(255, 255, 255, 0.55); }
+.lm-strip-cam { width: 180px; height: 104px; border-radius: 16px; overflow: hidden; }
+.lm-strip-cam .camfeed { width: 100%; height: 100%; }
+.lm-strip-app { width: 88px; height: 88px; border-radius: 20px; display: grid; place-items: center; font-size: 28px; }
+.lm-strip-app[data-active="true"] { background: rgba(77, 163, 255, 0.25); }
+.lm-strip-time { margin-left: auto; font-size: 40px; font-weight: 600; }
+.lm-canvas { transform-origin: 50% 68%; transform: perspective(1100px) rotateX(38deg) scale(1.55, 1.9); }

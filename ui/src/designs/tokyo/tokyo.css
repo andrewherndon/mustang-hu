@@ -1,0 +1,70 @@
+.tk { position: absolute; inset: 0; color: #fff; font-family: "Noto Sans JP Variable", sans-serif; overflow: hidden;
+  background: linear-gradient(#05040f 0%, #120a2e 45%, #2a0f3d 62%, #07050f 63%, #0b0718 100%); }
+.tk button { color: inherit; font-family: inherit; }
+.tk-city { position: absolute; left: 0; right: 0; top: 0; height: 600px;
+  background:
+    linear-gradient(#0b0718, #0b0718) 0 260px / 160px 340px no-repeat,
+    linear-gradient(#0d0920, #0d0920) 150px 180px / 120px 420px no-repeat,
+    linear-gradient(#0a0716, #0a0716) 260px 300px / 200px 300px no-repeat,
+    linear-gradient(#0e0a22, #0e0a22) 450px 120px / 140px 480px no-repeat,
+    linear-gradient(#0a0716, #0a0716) 580px 230px / 260px 370px no-repeat,
+    linear-gradient(#0d0920, #0d0920) 830px 90px / 130px 510px no-repeat,
+    linear-gradient(#0b0718, #0b0718) 950px 260px / 220px 340px no-repeat,
+    linear-gradient(#0e0a22, #0e0a22) 1160px 160px / 150px 440px no-repeat,
+    linear-gradient(#0a0716, #0a0716) 1300px 280px / 140px 320px no-repeat; }
+.tk-city i { position: absolute; width: 6px; height: 9px; background: #ffd27a; box-shadow: 0 0 6px #ffb347; }
+.tk-city i:nth-child(3n) { background: #8ff; box-shadow: 0 0 6px #2ff3ff; }
+.tk-rain { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+
+.tk-vsign { position: absolute; left: 34px; top: 40px; padding: 18px 10px; border: 3px solid #ff3fa4; border-radius: 10px; background: rgba(40, 0, 30, 0.6);
+  box-shadow: 0 0 18px #ff3fa4, inset 0 0 14px rgba(255, 63, 164, 0.5); animation: tk-flicker 7s infinite; }
+.tk-vsign span { writing-mode: vertical-rl; font-size: 54px; font-weight: 900; letter-spacing: 0.1em; color: #ffd6ec; text-shadow: 0 0 8px #ff3fa4, 0 0 22px #ff3fa4, 0 0 44px #ff3fa4; }
+.tk-vsign2 { left: auto; right: 34px; top: 170px; border-color: #2ff3ff; box-shadow: 0 0 18px #2ff3ff, inset 0 0 14px rgba(47, 243, 255, 0.4); animation-delay: -3s; }
+.tk-vsign2 span { color: #d6fdff; text-shadow: 0 0 8px #2ff3ff, 0 0 22px #2ff3ff; font-size: 44px; }
+@keyframes tk-flicker { 0%, 18%, 22%, 60%, 100% { opacity: 1; } 20% { opacity: 0.35; } 61% { opacity: 0.6; } 62% { opacity: 1; } }
+
+.tk-billboard { position: absolute; left: 150px; top: 60px; width: 470px; height: 270px; border: 8px solid #1a1530; outline: 2px solid #3a2f60; box-shadow: 0 0 60px rgba(47, 243, 255, 0.35); }
+.tk-billboard .camfeed { width: 100%; height: 100%; }
+.tk-bb-scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.25) 0 2px, transparent 2px 4px); pointer-events: none; }
+.tk-billboard span { position: absolute; right: 8px; bottom: 8px; font-size: 14px; font-weight: 700; padding: 3px 8px; background: #ff3fa4; }
+
+.tk-speed { position: absolute; left: 680px; top: 50px; text-align: center; width: 380px; }
+.tk-speed-k { font: 600 20px "Rajdhani", sans-serif; letter-spacing: 0.3em; color: #ffe14d; text-shadow: 0 0 10px #ffb300; }
+.tk-speed-n { font: 600 200px/0.9 "Rajdhani", sans-serif; color: #e6fdff; text-shadow: 0 0 10px #2ff3ff, 0 0 30px #2ff3ff, 0 0 60px #1aa8ff; }
+.tk-speed-u { font: 600 20px "Rajdhani", sans-serif; letter-spacing: 0.15em; color: #b8f8ff; }
+.tk-road { position: absolute; left: 640px; top: 330px; width: 460px; height: 270px; }
+
+.tk-clock { position: absolute; right: 120px; top: 50px; padding: 14px 20px; border-radius: 12px; background: #0f0f18; border: 2px solid #333; box-shadow: inset 0 0 20px #000; text-align: right; }
+.tk-clock-t { font: 600 74px/1 "Rajdhani", sans-serif; color: #ff5a3c; text-shadow: 0 0 10px #ff3a1c; letter-spacing: 0.04em; }
+.tk-clock-d { font-size: 18px; color: #ff9b85; margin-top: 4px; }
+
+.tk-led { position: absolute; left: 150px; top: 350px; width: 470px; height: 64px; overflow: hidden; white-space: nowrap; display: flex; align-items: center;
+  background: #120800; border: 3px solid #2b1a08; font-size: 30px; font-weight: 800; color: #ffae2b; text-shadow: 0 0 8px #ff8a00;
+  -webkit-mask: radial-gradient(circle, #000 1.6px, transparent 2px) 0 0 / 4px 4px; mask: radial-gradient(circle, #000 1.6px, transparent 2px) 0 0 / 4px 4px; }
+.tk-led span { display: inline-block; white-space: pre; animation: tk-marq 24s linear infinite; }
+@keyframes tk-marq { to { transform: translateX(-50%); } }
+.tk-media-b { position: absolute; left: 150px; top: 430px; width: 470px; display: flex; gap: 12px; }
+.tk-media-b button { flex: 1; height: 80px; border-radius: 12px; border: 2px solid #2ff3ff; color: #c9fbff; font-size: 26px; box-shadow: 0 0 12px rgba(47, 243, 255, 0.5), inset 0 0 12px rgba(47, 243, 255, 0.25); text-shadow: 0 0 8px #2ff3ff; background: rgba(0, 20, 30, 0.4); }
+.tk-media-b button:active { background: rgba(47, 243, 255, 0.35); }
+
+.tk-signs { position: absolute; left: 30px; right: 30px; bottom: 26px; height: 300px; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: 1fr 1fr; gap: 16px; z-index: 6; }
+.tk-sign { border-radius: 14px; border: 2.5px solid var(--n); background: rgba(10, 5, 25, 0.75); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  box-shadow: 0 0 14px var(--n), inset 0 0 14px color-mix(in srgb, var(--n) 35%, transparent); animation: tk-flicker 9s infinite; }
+.tk-sign b { font-size: 40px; font-weight: 900; color: #fff; text-shadow: 0 0 6px var(--n), 0 0 18px var(--n), 0 0 36px var(--n); line-height: 1.1; }
+.tk-sign span { font: 600 16px "Rajdhani", sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: color-mix(in srgb, var(--n) 60%, #fff); }
+.tk-sign:disabled { opacity: 0.25; animation: none; }
+.tk-sign[data-running="true"], .tk-sign[data-active="true"] { background: color-mix(in srgb, var(--n) 22%, rgba(10, 5, 25, 0.8)); }
+.tk-sign:active { background: color-mix(in srgb, var(--n) 45%, transparent); }
+
+.tk-strip { position: absolute; left: 0; right: 0; top: 0; z-index: 6; display: flex; align-items: center; gap: 16px; padding: 0 20px; background: rgba(8, 5, 20, 0.92); border-bottom: 2px solid #ff3fa4; box-shadow: 0 0 20px #ff3fa4; }
+.tk-strip .tk-sign { height: 104px; min-width: 110px; padding: 0 14px; }
+.tk-strip .tk-sign b { font-size: 32px; }
+.tk-strip-speed { font: 600 80px/1 "Rajdhani", sans-serif; color: #e6fdff; text-shadow: 0 0 10px #2ff3ff, 0 0 30px #2ff3ff; display: flex; align-items: baseline; gap: 6px; }
+.tk-strip-speed small { font-size: 18px; }
+.tk-strip-cam { width: 180px; height: 104px; border: 4px solid #1a1530; }
+.tk-strip-cam .camfeed { width: 100%; height: 100%; }
+.tk-strip-time { margin-left: auto; font: 600 56px "Rajdhani", sans-serif; color: #ff5a3c; text-shadow: 0 0 10px #ff3a1c; }
+
+.tk-saver { position: absolute; inset: 0; z-index: 9; background: rgba(5, 4, 15, 0.85); display: grid; place-content: center; text-align: center; }
+.tk-saver-t { font-size: 260px; font-weight: 900; color: #ffd6ec; text-shadow: 0 0 10px #ff3fa4, 0 0 40px #ff3fa4, 0 0 90px #ff3fa4; animation: tk-flicker 6s infinite; }
+.tk-saver-s { font: 600 28px "Rajdhani", sans-serif; letter-spacing: 0.4em; color: #2ff3ff; text-shadow: 0 0 10px #2ff3ff; }

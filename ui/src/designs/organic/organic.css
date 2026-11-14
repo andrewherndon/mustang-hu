@@ -1,0 +1,70 @@
+.og { --bg: #efe9dc; --sage: #8fa98b; --moss: #3f5a43; --clay: #cf8a68; --sand: #e2d3b6; --ink: #2f3a30;
+  position: absolute; inset: 0; background: var(--bg); color: var(--ink); font-family: "Nunito Variable", sans-serif; overflow: hidden; }
+.og button { color: inherit; font-family: inherit; }
+.og-blob { position: absolute; border-radius: 50% 45% 55% 50% / 55% 50% 50% 45%; filter: blur(4px); animation: og-breath 14s ease-in-out infinite alternate; }
+.og-b1 { left: -140px; top: -160px; width: 620px; height: 560px; background: #dfe6d3; }
+.og-b2 { right: -180px; top: 220px; width: 560px; height: 600px; background: #ead8c6; animation-delay: -5s; }
+.og-b3 { left: 420px; bottom: -260px; width: 700px; height: 480px; background: #e3e8db; animation-delay: -9s; }
+@keyframes og-breath { from { transform: scale(1) rotate(0); border-radius: 50% 45% 55% 50% / 55% 50% 50% 45%; } to { transform: scale(1.06) rotate(8deg); border-radius: 45% 55% 48% 52% / 48% 55% 45% 52%; } }
+
+.og-hello { position: absolute; left: 70px; top: 60px; }
+.og-greet { font: 400 44px/1.1 "Fraunces Variable", serif; font-variation-settings: "SOFT" 100, "opsz" 72; color: var(--moss); }
+.og-greet-sub { font-size: 22px; color: var(--sage); margin-top: 6px; font-weight: 600; }
+.og-time { font: 300 132px/1 "Fraunces Variable", serif; font-variation-settings: "SOFT" 100, "opsz" 144; margin-top: 14px; letter-spacing: -0.02em; }
+
+.og-sun { position: absolute; left: 70px; top: 360px; width: 560px; }
+.og-sun svg { width: 560px; height: 205px; overflow: visible; }
+.og-arc { fill: none; stroke: #cfc6b2; stroke-width: 3; stroke-dasharray: 2 10; stroke-linecap: round; }
+.og-arc-done { fill: none; stroke: var(--clay); stroke-width: 4; stroke-linecap: round; }
+.og-horizon { stroke: #cfc6b2; stroke-width: 2; }
+.og-sunball { fill: #f1b263; filter: drop-shadow(0 0 14px rgba(241, 178, 99, 0.8)); }
+.og-sun-l { display: flex; justify-content: space-between; font-size: 18px; color: #8a8572; font-weight: 600; margin-top: 4px; }
+
+.og-pebble { position: absolute; overflow: hidden; }
+.og-cam { left: 700px; top: 60px; width: 420px; height: 330px; border-radius: 58% 42% 55% 45% / 50% 55% 45% 50%; box-shadow: 0 24px 50px rgba(63, 90, 67, 0.25); animation: og-morph 18s ease-in-out infinite alternate; }
+.og-cam .camfeed { width: 100%; height: 100%; }
+@keyframes og-morph { to { border-radius: 45% 55% 42% 58% / 56% 44% 58% 42%; } }
+.og-cam-l { position: absolute; left: 760px; top: 404px; font-size: 18px; color: #8a8572; font-weight: 600; }
+
+.og-drive { position: absolute; left: 1160px; top: 60px; width: 230px; display: flex; flex-direction: column; align-items: center; }
+.og-speed { font: 300 120px/1 "Fraunces Variable", serif; font-variation-settings: "SOFT" 100; display: flex; flex-direction: column; align-items: center; }
+.og-speed span { font: 600 18px "Nunito Variable", sans-serif; color: var(--sage); }
+.og-leaves { display: flex; gap: 18px; margin-top: 18px; }
+.og-leaf { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: #8a8572; }
+.og-leaf-shape { position: relative; width: 50px; height: 92px; border-radius: 50% 0 50% 0 / 50% 0 50% 0; background: #dfe6d3; overflow: hidden; transform: rotate(8deg); }
+.og-leaf-shape i { position: absolute; left: 0; right: 0; bottom: 0; background: var(--sage); transition: height 400ms; }
+.og-trip { margin-top: 16px; font-size: 16px; color: #8a8572; text-align: center; font-weight: 600; }
+
+.og-media { position: absolute; left: 700px; top: 450px; width: 690px; height: 120px; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto auto; align-items: center; padding: 0 0 0 4px; }
+.og-media-k { font-size: 15px; font-weight: 700; color: var(--clay); text-transform: lowercase; letter-spacing: 0.06em; }
+.og-media-t { font: 400 34px/1.1 "Fraunces Variable", serif; font-style: italic; }
+.og-media-a { font-size: 18px; color: #8a8572; }
+.og-media-b { grid-column: 2; grid-row: 1 / 4; display: flex; gap: 12px; align-items: center; }
+.og-media-b button { width: 80px; height: 80px; border-radius: 50%; background: rgba(143, 169, 139, 0.2); font-size: 34px; color: var(--moss); }
+.og-media-b .og-play { width: 96px; height: 96px; background: var(--moss); color: var(--bg) !important; font-size: 26px; }
+
+.og-apps { position: absolute; left: 60px; right: 60px; bottom: 50px; height: 280px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px 24px; }
+.og-stone { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: rgba(255, 255, 255, 0.55); border-radius: var(--r); font-size: 17px; font-weight: 700; color: var(--moss); box-shadow: 0 10px 24px rgba(63, 90, 67, 0.12); transition: transform 300ms; }
+.og-stone:active { transform: scale(0.94); }
+.og-stone:disabled { opacity: 0.4; }
+.og-stone[data-running="true"] { background: rgba(143, 169, 139, 0.35); }
+.og-glyph { width: 56px; height: 56px; object-fit: contain; border-radius: 16px; font-size: 32px; color: var(--sage); }
+img.og-glyph { filter: saturate(0.55); }
+
+.og-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 18px; padding: 0 28px; background: rgba(239, 233, 220, 0.96); border-radius: 40px 40px 0 0; box-shadow: 0 -10px 30px rgba(63, 90, 67, 0.12); }
+.og-strip-home { height: 90px; padding: 0 26px; border-radius: 45px; background: var(--moss); color: var(--bg) !important; font-size: 22px; font-weight: 700; }
+.og-strip-speed { font: 300 64px/1 "Fraunces Variable", serif; display: flex; align-items: baseline; gap: 6px; }
+.og-strip-speed small { font: 600 15px "Nunito Variable", sans-serif; color: var(--sage); }
+.og-strip-cam { width: 170px; height: 108px; border-radius: 58% 42% 55% 45% / 50% 55% 45% 50%; overflow: hidden; }
+.og-strip-cam .camfeed { width: 100%; height: 100%; }
+.og-strip-app { width: 100px; height: 100px; }
+.og-strip-app[data-active="true"] { background: rgba(143, 169, 139, 0.45); }
+.og-strip-time { margin-left: auto; font: 300 54px "Fraunces Variable", serif; }
+
+.og-breathe { position: absolute; inset: 0; z-index: 9; background: #e3e8db; display: grid; place-items: center; }
+.og-breathe-c { width: 260px; height: 260px; border-radius: 50%; background: var(--sage); opacity: 0.6; animation: og-in 10s ease-in-out infinite; }
+@keyframes og-in { 0%, 100% { transform: scale(0.7); } 50% { transform: scale(1.8); } }
+.og-breathe-t { position: absolute; bottom: 120px; font: 400 30px "Fraunces Variable", serif; color: var(--moss); height: 40px; }
+.og-breathe-t span { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; animation: og-t 10s infinite; }
+.og-breathe-t span:last-child { animation-delay: -5s; }
+@keyframes og-t { 0%, 45% { opacity: 1; } 50%, 95% { opacity: 0; } 100% { opacity: 1; } }
