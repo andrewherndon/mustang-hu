@@ -119,3 +119,37 @@
 .ae-round-play { width: 76px; height: 76px; }
 .ae-car { top: 380px; width: 840px; left: 80px; }
 .ae-car-shadow { position: absolute; left: 150px; top: 668px; width: 700px; height: 70px; border-radius: 50%; background: radial-gradient(closest-side, rgba(10, 40, 0, 0.55), transparent); filter: blur(6px); }
+
+/* animated car: the picture plus two turning rim discs */
+.ae-carbox { position: absolute; }
+.ae-car { -webkit-box-reflect: unset; filter: none; }
+.ae-car-img { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 30px 24px rgba(0, 40, 0, 0.35)); }
+.ae-rim { position: absolute; transform-origin: 50% 50%; }
+.ae-rim img { width: 100%; height: 100%; display: block; will-change: transform; }
+
+/* greeting: Chinese only, bolder */
+.ae-welcome h1 { font-size: 64px; font-weight: 700; letter-spacing: 0.02em; text-shadow: 0 2px 16px rgba(0, 50, 110, 0.5); }
+
+/* Now Playing: the main gadget */
+.ae-gadget[data-big="true"] .ae-gadget-b { padding: 8px 18px 18px; }
+.ae-gadget[data-big="true"] .ae-cover { width: 120px; height: 120px; font-size: 52px; }
+.ae-gadget[data-big="true"] .ae-player-t b { font-size: 30px; }
+.ae-gadget[data-big="true"] .ae-player-t span { font-size: 19px; }
+.ae-player-t small { font-size: 15px; color: rgba(255, 255, 255, 0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ae-gadget[data-big="true"] .ae-player-b { margin-top: 26px; gap: 22px; }
+.ae-gadget[data-big="true"] .ae-round { width: 86px; height: 86px; font-size: 28px; }
+.ae-gadget[data-big="true"] .ae-round-play { width: 108px; height: 108px; font-size: 36px; }
+.ae-vol { display: flex; align-items: center; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+.ae-pill { height: 60px; min-width: 60px; padding: 0 14px; border-radius: 30px; font-size: 22px;
+  background: linear-gradient(rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.06)); border: 1px solid rgba(255, 255, 255, 0.45); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+.ae-pill:active { filter: brightness(1.4); }
+.ae-pill-open { width: 100%; margin-top: 4px; font-size: 19px; font-weight: 600; background: linear-gradient(rgba(140, 215, 255, 0.55), rgba(30, 120, 220, 0.4)); }
+.ae-vol-bar { flex: 1; height: 12px; border-radius: 6px; background: rgba(0, 0, 0, 0.45); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6); overflow: hidden; }
+.ae-vol-bar i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(#9fe4ff, #2a9bf0); box-shadow: 0 0 8px rgba(90, 200, 255, 0.8); }
+.ae-gadget[data-big="true"] .ae-cover { width: 104px; height: 104px; font-size: 46px; -webkit-box-reflect: unset; }
+.ae-gadget[data-big="true"] .ae-player-b { margin-top: 16px; }
+.ae-gadget[data-big="true"] .ae-round { width: 78px; height: 78px; }
+.ae-gadget[data-big="true"] .ae-round-play { width: 96px; height: 96px; }
+.ae-vol { margin-top: 14px; flex-wrap: nowrap; }
+.ae-pill-open { width: auto; align-self: flex-start; height: 44px; margin-top: 8px; padding: 0 16px; font-size: 16px; }
+.ae-gadget[data-grow="true"] { min-height: 190px; }

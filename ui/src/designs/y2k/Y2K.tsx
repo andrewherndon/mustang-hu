@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "@fontsource-variable/open-sans";
 import "./y2k.css";
 import type { Design, DesignContext } from "../kit/types";
@@ -18,6 +18,7 @@ function Y2K({ ctx }: { ctx: DesignContext }) {
   const now = new Date();
   const g = greetings(now);
   const [menu, setMenu] = useState(false);
+  const mediaApp = ctx.media ? ctx.apps.find((a) => a.key === `android:${ctx.media!.package}` || a.title === ctx.media!.app) : undefined;
   const idle = useIdle(120_000) && car.parked && !ctx.appOpen;
   const bubbles = useMemo(() => Array.from({ length: 9 }, (_, i) => ({
     left: 4 + ((i * 41) % 60), size: 26 + ((i * 29) % 60), delay: -((i * 4.3) % 30), dur: 24 + ((i * 7) % 16),
@@ -31,12 +32,11 @@ function Y2K({ ctx }: { ctx: DesignContext }) {
       {ctx.appOpen ? <Taskbar ctx={ctx} onOrb={ctx.goHome} strip /> : (
         <>
           <section className="ae-welcome">
-            <h1>{g.en}, Andrey</h1>
-            <p>{g.ru} · {g.zh}</p>
+            <h1>{g.zh}，安德烈</h1>
           </section>
 
           <div className="ae-car-shadow" />
-          <img className="ae-car" src="/art/y2k/car.png" alt="" />
+          <AeroCar speedMph={car.speedMph} className="ae-car" />
 
           <aside className="ae-sidebar">
             <Gadget title="Drive">
@@ -45,24 +45,25 @@ function Y2K({ ctx }: { ctx: DesignContext }) {
                 <Dial value={car.rpm / 7000} red={CAR_REDLINE / 7000} label={(car.rpm / 1000).toFixed(1)} unit="rpm" />
               </div>
             </Gadget>
-            <Gadget title="Clock">
-              <div className="ae-clock-g">
-                <AnalogClock d={now} />
-                <div className="ae-clock-t"><b>{hhmm(now)}</b><span>{now.toLocaleDateString("en-US", { weekday: "long" })}</span><span>{now.toLocaleDateString("en-US", { month: "long", day: "numeric" })}</span></div>
-              </div>
-            </Gadget>
-            <Gadget title="Now Playing">
+            <Gadget title="Now Playing" big>
               <div className="ae-player">
                 <div className="ae-cover"><span>{ctx.media ? "♫" : "♪"}</span></div>
                 <div className="ae-player-t">
                   <b>{ctx.media?.title ?? "No media"}</b>
                   <span>{ctx.media ? ctx.media.artist : "Play something on Android"}</span>
+                  {mediaApp && <button className="ae-pill ae-pill-open" onClick={mediaApp.open}>Open {mediaApp.title} ›</button>}
                 </div>
               </div>
               <div className="ae-player-b">
-                <button className="ae-round" onClick={() => ctx.mediaControl("previous")}>⏮</button>
-                <button className="ae-round ae-round-play" onClick={() => ctx.mediaControl("play-pause")}>{ctx.media?.playing ? "⏸" : "▶"}</button>
-                <button className="ae-round" onClick={() => ctx.mediaControl("next")}>⏭</button>
+                <button className="ae-round" onClick={() => ctx.mediaControl("previous")} aria-label="Previous">⏮</button>
+                <button className="ae-round ae-round-play" onClick={() => ctx.mediaControl("play-pause")} aria-label="Play or pause">{ctx.media?.playing ? "⏸" : "▶"}</button>
+                <button className="ae-round" onClick={() => ctx.mediaControl("next")} aria-label="Next">⏭</button>
+              </div>
+              <div className="ae-vol">
+                <button className="ae-pill" onClick={() => ctx.setMute(!ctx.state.volume.muted)}>{ctx.state.volume.muted ? "🔇" : "🔈"}</button>
+                <button className="ae-pill" onClick={() => ctx.setVolume(Math.max(0, ctx.state.volume.level - 0.1))}>−</button>
+                <div className="ae-vol-bar"><i style={{ width: `${ctx.state.volume.muted ? 0 : ctx.state.volume.level * 100}%` }} /></div>
+                <button className="ae-pill" onClick={() => ctx.setVolume(Math.min(1, ctx.state.volume.level + 0.1))}>+</button>
               </div>
             </Gadget>
             <Gadget title="Front Camera" grow>
@@ -84,8 +85,54 @@ function Y2K({ ctx }: { ctx: DesignContext }) {
   );
 }
 
-function Gadget({ title, children, grow }: { title: string; children: React.ReactNode; grow?: boolean }) {
-  return <section className="ae-gadget" data-grow={grow}><header>{title}</header><div className="ae-gadget-b">{children}</div></section>;
+/**
+ * The glossy car, unchanged, with only the rims turning. Each rim is a disc
+ * cut from the same picture and stretched to a circle (tools: see commit);
+ * it is rotated, then squashed back into the rim's ellipse, so it lines up
+ * exactly with the still image underneath. Rate follows speed, gently.
+ */
+const CAR_W = 1400, CAR_H = 538;
+const RIMS = [
+  { src: "/art/y2k/wheel-f.png", cx: 768, cy: 403, rx: 97, ry: 102 },
+  { src: "/art/y2k/wheel-r.png", cx: 127, cy: 342, rx: 46, ry: 80 },
+];
+
+function AeroCar({ speedMph, className }: { speedMph: number; className?: string }) {
+  const rims = useRef<(HTMLImageElement | null)[]>([]);
+  const speed = useRef(speedMph);
+  speed.current = speedMph;
+  useEffect(() => {
+    let raf = 0, last = performance.now(), angle = 0, rate = 0;
+    const frame = (now: number) => {
+      raf = requestAnimationFrame(frame);
+      const dt = Math.min(0.1, (now - last) / 1000); last = now;
+      // calm, readable spin: ~0.25 rev/s at walking pace up to ~1.4 rev/s on the highway
+      const target = speed.current < 0.5 ? 0 : 90 + Math.min(speed.current, 80) * 5.5;   // deg/s
+      rate += (target - rate) * Math.min(1, dt * 1.5);                                  // ease (coasts to a stop)
+      angle = (angle + rate * dt) % 360;
+      for (const r of rims.current) if (r) r.style.transform = `rotate(${angle}deg)`;
+    };
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return (
+    <div className={`ae-carbox ${className ?? ""}`} style={{ aspectRatio: `${CAR_W} / ${CAR_H}` }}>
+      <img className="ae-car-img" src="/art/y2k/car.png" alt="" />
+      {RIMS.map((w, i) => (
+        <div key={w.src} className="ae-rim" style={{
+          left: `${((w.cx - w.ry) / CAR_W) * 100}%`, top: `${((w.cy - w.ry) / CAR_H) * 100}%`,
+          width: `${((2 * w.ry) / CAR_W) * 100}%`, height: `${((2 * w.ry) / CAR_H) * 100}%`,
+          transform: `scaleX(${w.rx / w.ry})`,
+        }}>
+          <img ref={(el) => { rims.current[i] = el; }} src={w.src} alt="" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Gadget({ title, children, grow, big }: { title: string; children: React.ReactNode; grow?: boolean; big?: boolean }) {
+  return <section className="ae-gadget" data-grow={grow} data-big={big}><header>{title}</header><div className="ae-gadget-b">{children}</div></section>;
 }
 
 /** A black-chrome gauge dial, like the old CPU-meter gadget. */
