@@ -1,64 +1,54 @@
-.sr { --gold: #c9a45c; position: absolute; inset: 0; background: #070707; color: #ece7dc; font-family: "Jost Variable", sans-serif; overflow: hidden; }
+.sr { position: absolute; inset: 0; background: #000; color: #f4f4f2; font-family: "Inter Tight Variable", sans-serif; overflow: hidden; }
 .sr button { color: inherit; font-family: inherit; }
-.sr-spot { position: absolute; left: 50%; top: -200px; width: 1300px; height: 1100px; transform: translateX(-50%);
-  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 240, 210, 0.16), rgba(255, 240, 210, 0.04) 50%, transparent 70%); pointer-events: none; }
+.sr-photo { position: absolute; inset: 0; background: url(/art/showroom/car.jpg) 50% 62% / cover no-repeat; animation: sr-push 40s ease-in-out infinite alternate; }
+@keyframes sr-push { from { transform: scale(1.02); } to { transform: scale(1.1) translateY(1%); } }
+.sr-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 22%, transparent 60%, rgba(0, 0, 0, 0.85) 82%); }
 
-.sr-head { position: absolute; left: 64px; right: 64px; top: 48px; display: flex; justify-content: space-between; align-items: flex-start; }
-.sr-brand { font-size: 44px; font-weight: 300; letter-spacing: 0.55em; }
-.sr-sub { margin-top: 10px; font-size: 15px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--gold); }
-.sr-time { font: 300 76px/1 "Fraunces Variable", serif; text-align: right; font-variation-settings: "opsz" 144; }
-.sr-time span { display: block; margin-top: 8px; font: 400 15px "Jost Variable", sans-serif; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(236, 231, 220, 0.55); }
+.sr-nav { position: absolute; left: 56px; right: 56px; top: 30px; height: 64px; display: flex; align-items: center; gap: 40px; }
+.sr-logo { font-size: 22px; font-weight: 700; letter-spacing: 0.32em; }
+.sr-nav nav { flex: 1; display: flex; gap: 8px; justify-content: center; }
+.sr-nav nav > * { height: 56px; padding: 0 22px; display: flex; align-items: center; border-radius: 28px; font-size: 19px; color: rgba(244, 244, 242, 0.7); }
+.sr-nav nav [data-on="true"] { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.sr-time { font-size: 30px; font-weight: 500; }
 
-.sr-stage { position: absolute; left: 0; right: 380px; top: 170px; height: 470px; }
-.sr-floor { position: absolute; left: 80px; right: 40px; bottom: 30px; height: 120px; border-radius: 50%;
-  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 240, 210, 0.12), transparent 70%); border-top: 1px solid rgba(201, 164, 92, 0.25); }
-.sr-car { position: absolute; left: 110px; width: 840px; bottom: 50px; -webkit-box-reflect: below -8px linear-gradient(transparent 60%, rgba(255, 255, 255, 0.18)); }
+.sr-title { position: absolute; left: 56px; top: 118px; }
+.sr-title h1 { font-size: 64px; font-weight: 600; letter-spacing: -0.03em; }
+.sr-title p { margin-top: 6px; font-size: 20px; color: rgba(244, 244, 242, 0.65); }
 
-.sr-call { position: absolute; display: flex; flex-direction: column; gap: 2px; }
-.sr-call i { position: absolute; background: var(--gold); opacity: 0.7; }
-.sr-call-l { font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); }
-.sr-call-v { font: 300 56px/1 "Fraunces Variable", serif; display: flex; align-items: baseline; gap: 8px; }
-.sr-call-v small { font: 400 15px "Jost Variable", sans-serif; letter-spacing: 0.15em; color: rgba(236, 231, 220, 0.6); text-transform: uppercase; }
-.sr-c1 { left: 64px; top: 10px; }
-.sr-c1 i { left: 0; top: 96px; width: 1px; height: 120px; }
-.sr-c2 { left: 320px; top: -6px; }
-.sr-c2 i { left: 0; top: 80px; width: 1px; height: 110px; }
-.sr-c3 { left: 760px; top: 10px; }
-.sr-c3 i { left: 0; top: 96px; width: 1px; height: 100px; }
-.sr-c4 { left: 64px; bottom: 6px; }
-.sr-c4 i { left: 120px; top: 30px; width: 70px; height: 1px; }
+.sr-view { position: absolute; right: 56px; top: 118px; width: 300px; height: 178px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.18); }
+.sr-view .camfeed { width: 100%; height: 100%; }
+.sr-view span { position: absolute; left: 12px; bottom: 10px; font-size: 14px; color: rgba(255, 255, 255, 0.85); }
 
-.sr-cam { position: absolute; right: 64px; top: 200px; width: 300px; height: 400px; border: 1px solid rgba(201, 164, 92, 0.5); padding: 8px; }
-.sr-cam .camfeed { width: 100%; height: 100%; }
-.sr-cam span { position: absolute; left: 0; bottom: -30px; font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); }
+.sr-specs { position: absolute; left: 56px; right: 56px; top: 640px; height: 132px; display: grid; grid-template-columns: 1fr 1fr 1fr 1.6fr; }
+.sr-spec { display: flex; flex-direction: column; justify-content: center; padding: 0 28px; border-left: 1px solid rgba(255, 255, 255, 0.18); min-width: 0; }
+.sr-spec:first-child { border-left: 0; padding-left: 0; }
+.sr-spec b { font-size: 60px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; }
+.sr-spec small { font-size: 20px; font-weight: 500; margin-left: 6px; letter-spacing: 0; color: rgba(244, 244, 242, 0.7); }
+.sr-spec > span { margin-top: 8px; font-size: 17px; color: rgba(244, 244, 242, 0.6); }
+.sr-np b { font-size: 30px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-np > div { display: flex; gap: 8px; margin-top: 10px; }
+.sr-np button { height: 56px; min-width: 56px; padding: 0 18px; border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.3); font-size: 20px; }
+.sr-np .sr-np-play { background: #fff; color: #000 !important; border-color: #fff; min-width: 110px; }
 
-.sr-np { position: absolute; left: 64px; right: 64px; top: 676px; display: flex; align-items: center; gap: 24px; padding: 18px 0; border-top: 1px solid rgba(236, 231, 220, 0.14); border-bottom: 1px solid rgba(236, 231, 220, 0.14); }
-.sr-np-k { font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); }
-.sr-np-t { font: 300 28px "Fraunces Variable", serif; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sr-np-t em { font-style: italic; }
-.sr-np-btns { display: flex; gap: 6px; }
-.sr-np-btns button { height: 64px; padding: 0 22px; font-size: 14px; letter-spacing: 0.25em; text-transform: uppercase; border: 1px solid rgba(236, 231, 220, 0.25); }
-.sr-np-btns button:active { background: var(--gold); color: #000; }
+.sr-menu { position: absolute; left: 40px; right: 40px; bottom: 26px; height: 120px; display: flex; align-items: center; gap: 6px; overflow-x: auto; touch-action: pan-x; scrollbar-width: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.14); }
+.sr-menu button { flex: none; height: 84px; padding: 0 24px; border-radius: 42px; font-size: 21px; color: rgba(244, 244, 242, 0.85); }
+.sr-menu button[data-running="true"] { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.sr-menu button:active { background: #fff; color: #000; }
+.sr-menu button:disabled { opacity: 0.35; }
 
-.sr-menu { position: absolute; left: 44px; right: 44px; bottom: 30px; height: 120px; display: flex; align-items: center; gap: 4px; overflow-x: auto; touch-action: pan-x; scrollbar-width: none; }
-.sr-menu button { flex: none; height: 100px; padding: 0 20px; font-size: 21px; font-weight: 350; letter-spacing: 0.12em; text-transform: uppercase; position: relative; }
-.sr-menu button sup { font-size: 11px; color: var(--gold); margin-right: 8px; vertical-align: 10px; }
-.sr-menu button[data-running="true"]::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: 24px; height: 1px; background: var(--gold); }
-.sr-menu button:disabled { opacity: 0.3; }
-.sr-menu button:active { color: var(--gold); }
-
-.sr-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 30px; padding: 0 40px; border-top: 1px solid rgba(201, 164, 92, 0.5); background: #070707; }
-.sr-strip-home { height: 90px; font-size: 16px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold) !important; }
-.sr-strip-speed { font: 300 64px/1 "Fraunces Variable", serif; display: flex; align-items: baseline; gap: 8px; }
-.sr-strip-speed small { font: 400 14px "Jost Variable", sans-serif; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; }
-.sr-strip-cam { width: 180px; height: 104px; border: 1px solid rgba(201, 164, 92, 0.5); padding: 4px; }
+.sr-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 24px; padding: 0 36px; background: #000; border-top: 1px solid rgba(255, 255, 255, 0.14); }
+.sr-strip-home { height: 80px; padding: 0 28px; border-radius: 40px; background: #fff; color: #000 !important; font-size: 21px; font-weight: 600; }
+.sr-strip-spec { border: 0; padding: 0; }
+.sr-strip-cam { width: 186px; height: 106px; border-radius: 10px; overflow: hidden; }
 .sr-strip-cam .camfeed { width: 100%; height: 100%; }
-.sr-strip-apps { display: flex; gap: 4px; }
-.sr-strip-apps button { height: 90px; padding: 0 16px; font-size: 16px; letter-spacing: 0.15em; text-transform: uppercase; }
-.sr-strip-apps button[data-active="true"] { color: var(--gold); box-shadow: inset 0 -1px 0 var(--gold); }
-.sr-strip-time { margin-left: auto; font: 300 50px "Fraunces Variable", serif; }
+.sr-strip-apps { display: flex; gap: 6px; }
+.sr-strip-apps button { height: 80px; padding: 0 22px; border-radius: 40px; font-size: 20px; color: rgba(244, 244, 242, 0.8); }
+.sr-strip-apps button[data-active="true"] { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.sr-strip .sr-time { margin-left: auto; font-size: 44px; }
 
-.sr-saver { position: absolute; inset: 0; z-index: 9; background: #000; display: grid; place-items: center; animation: sr-fade 2s; }
-.sr-saver video { width: 1100px; opacity: 0.85; }
-.sr-saver div { position: absolute; bottom: 90px; font: 200 italic 64px "Fraunces Variable", serif; letter-spacing: 0.1em; color: var(--gold); }
-@keyframes sr-fade { from { opacity: 0; } }
+.sr-saver { position: absolute; inset: 0; z-index: 9; background: #000; }
+.sr-photo-saver { animation-duration: 60s; }
+.sr-saver-t { position: absolute; left: 0; right: 0; bottom: 70px; text-align: center; font-size: 30px; font-weight: 600; letter-spacing: 0.6em; }
+.sr > .sr-photo { inset: 0; background-size: 1380px auto; background-position: 50% 6%; }
+.sr-shade { background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), transparent 24%, transparent 56%, rgba(0, 0, 0, 0.92) 70%, #000 86%); }

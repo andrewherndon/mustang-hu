@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import "@fontsource-variable/noto-sans-jp";
 import "@fontsource/rajdhani/600.css";
 import "./tokyo.css";
@@ -24,13 +24,10 @@ function Tokyo({ ctx }: { ctx: DesignContext }) {
   const { car } = ctx;
   const now = new Date();
   const idle = useIdle(120_000) && car.parked && !ctx.appOpen;
-  const windows = useMemo(() => Array.from({ length: 160 }, (_, i) => ({ x: (i * 97) % 1440, y: 120 + ((i * 53) % 380), on: (i * 7) % 5 !== 0 })), []);
 
   return (
     <div className="tk">
-      <div className="tk-city">
-        {windows.map((w, i) => <i key={i} style={{ left: w.x, top: w.y, opacity: w.on ? 0.9 : 0.15 }} />)}
-      </div>
+      <div className="tk-photo" />
       <Rain />
       {ctx.appOpen ? <Strip ctx={ctx} /> : (
         <>

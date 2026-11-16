@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import "@fontsource-variable/orbitron";
 import "@fontsource/rajdhani/500.css";
 import "@fontsource/rajdhani/600.css";
@@ -37,7 +36,7 @@ function Holo({ ctx }: { ctx: DesignContext }) {
 
           <section className="ho-core">
             <div className="ho-ring ho-ring1" /><div className="ho-ring ho-ring2" /><div className="ho-ring ho-ring3" />
-            <Wireframe />
+            <img className="ho-carimg" src="/art/holo/car.jpg" alt="" />
             <svg className="ho-gauge" viewBox="0 0 400 400">
               {Array.from({ length: 61 }, (_, i) => {
                 const a = (-225 + i * 4.5) * Math.PI / 180, r1 = 188, r2 = i % 5 ? 180 : 170;
@@ -89,7 +88,7 @@ function Holo({ ctx }: { ctx: DesignContext }) {
       {idle && (
         <div className="ho-saver">
           <div className="ho-ring ho-ring1" /><div className="ho-ring ho-ring2" />
-          <Wireframe big />
+          <img className="ho-carimg-big" src="/art/holo/car.jpg" alt="" />
           <div className="ho-saver-t">МУСТАНГ · MUSTANG · 野马</div>
         </div>
       )}
@@ -123,60 +122,6 @@ function Reticles({ objects }: { objects: Detected[] }) {
       })}
     </svg>
   );
-}
-
-/** A rotating wireframe coupe, drawn with a tiny 3D projection. */
-const V: [number, number, number][] = [
-  // lower body (x: length, y: up, z: width)
-  [-2.3, 0.3, -0.9], [2.3, 0.3, -0.9], [2.3, 0.3, 0.9], [-2.3, 0.3, 0.9],
-  [-2.3, 0.85, -0.9], [2.1, 0.8, -0.9], [2.1, 0.8, 0.9], [-2.3, 0.85, 0.9],
-  // cabin
-  [-1.2, 0.85, -0.75], [0.6, 0.85, -0.75], [0.6, 0.85, 0.75], [-1.2, 0.85, 0.75],
-  [-0.9, 1.3, -0.65], [0.1, 1.3, -0.65], [0.1, 1.3, 0.65], [-0.9, 1.3, 0.65],
-];
-const E: [number, number][] = [
-  [0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7],
-  [8, 9], [9, 10], [10, 11], [11, 8], [12, 13], [13, 14], [14, 15], [15, 12], [8, 12], [9, 13], [10, 14], [11, 15],
-];
-const WHEELS: [number, number][] = [[-1.5, -0.95], [1.4, -0.95], [-1.5, 0.95], [1.4, 0.95]];
-
-function Wireframe({ big }: { big?: boolean }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const el = ref.current!, c = el.getContext("2d")!;
-    const S = big ? 900 : 440;
-    el.width = S * 2; el.height = S * 2;
-    let raf = 0, a = 0;
-    const draw = () => {
-      raf = requestAnimationFrame(draw); a += 0.004;
-      c.clearRect(0, 0, el.width, el.height);
-      const sc = el.width / 7, ca = Math.cos(a), sa = Math.sin(a), tilt = 0.35;
-      const P = ([x, y, z]: [number, number, number]) => {
-        const rx = x * ca - z * sa, rz = x * sa + z * ca;
-        const yy = y * Math.cos(tilt) - rz * Math.sin(tilt), zz = y * Math.sin(tilt) + rz * Math.cos(tilt);
-        const p = 6 / (6 + zz);
-        return [el.width / 2 + rx * sc * p, el.height * 0.58 - yy * sc * p] as const;
-      };
-      c.strokeStyle = "#5ff8ff"; c.lineWidth = 2.5; c.shadowColor = "#5ff8ff"; c.shadowBlur = 14;
-      c.beginPath();
-      for (const [i, j] of E) { const [x1, y1] = P(V[i]), [x2, y2] = P(V[j]); c.moveTo(x1, y1); c.lineTo(x2, y2); }
-      for (const [wx, wz] of WHEELS) for (let k = 0; k <= 16; k++) {
-        const t = (k / 16) * Math.PI * 2, [x, y] = P([wx + Math.cos(t) * 0.35, 0.35 + Math.sin(t) * 0.35, wz]);
-        k ? c.lineTo(x, y) : c.moveTo(x, y);
-      }
-      c.stroke();
-      // floor grid
-      c.shadowBlur = 0; c.globalAlpha = 0.25; c.beginPath();
-      for (let g = -3; g <= 3; g++) {
-        const [x1, y1] = P([g, 0, -3]), [x2, y2] = P([g, 0, 3]); c.moveTo(x1, y1); c.lineTo(x2, y2);
-        const [x3, y3] = P([-3, 0, g]), [x4, y4] = P([3, 0, g]); c.moveTo(x3, y3); c.lineTo(x4, y4);
-      }
-      c.stroke(); c.globalAlpha = 1;
-    };
-    raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
-  }, [big]);
-  return <canvas ref={ref} className={big ? "ho-wire ho-wire-big" : "ho-wire"} />;
 }
 
 function Strip({ ctx }: { ctx: DesignContext }) {

@@ -74,3 +74,9 @@
 .ho-saver .ho-ring { inset: auto; width: 760px; height: 760px; left: 340px; top: 100px; }
 .ho-wire-big { position: absolute; left: 270px; top: 30px; width: 900px; height: 900px; }
 .ho-saver-t { position: absolute; bottom: 60px; font: 700 30px "Orbitron Variable", sans-serif; letter-spacing: 0.4em; text-shadow: 0 0 20px var(--c); }
+
+.ho-carimg { position: absolute; left: -30px; top: 40px; width: 560px; mix-blend-mode: screen; animation: ho-float 6s ease-in-out infinite alternate;
+  -webkit-mask: radial-gradient(60% 60% at 50% 50%, #000 55%, transparent 80%); mask: radial-gradient(60% 60% at 50% 50%, #000 55%, transparent 80%); }
+.ho-carimg-big { position: absolute; left: 170px; top: 120px; width: 1100px; mix-blend-mode: screen; animation: ho-float 8s ease-in-out infinite alternate; }
+@keyframes ho-float { from { transform: translateY(6px); filter: brightness(0.9); } to { transform: translateY(-8px); filter: brightness(1.15); } }
+.ho-core .ho-speed { z-index: 1; }

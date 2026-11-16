@@ -96,3 +96,8 @@ img.gl-icon { background: #fff; }
 .gl-trip small { font-size: 15px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; }
 .gl-trip em { font-style: normal; font-size: 16px; font-weight: 600; opacity: 0.7; margin-top: -4px; }
 .gl-trip .gl-trip-car { grid-column: 1 / 4; font-size: 16px; font-weight: 600; opacity: 0.6; margin-top: 14px; }
+
+/* generated glass-ribbon wallpaper replaces the blur blobs */
+.gl-wall { filter: none; background: url(/art/glass/wall.jpg) center / cover; animation: gl-wall 60s ease-in-out infinite alternate; inset: -3%; }
+.gl-wall i { display: none; }
+@keyframes gl-wall { to { transform: scale(1.05) translate(-1%, 1%); } }

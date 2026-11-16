@@ -68,3 +68,11 @@
 .tk-saver { position: absolute; inset: 0; z-index: 9; background: rgba(5, 4, 15, 0.85); display: grid; place-content: center; text-align: center; }
 .tk-saver-t { font-size: 260px; font-weight: 900; color: #ffd6ec; text-shadow: 0 0 10px #ff3fa4, 0 0 40px #ff3fa4, 0 0 90px #ff3fa4; animation: tk-flicker 6s infinite; }
 .tk-saver-s { font: 600 28px "Rajdhani", sans-serif; letter-spacing: 0.4em; color: #2ff3ff; text-shadow: 0 0 10px #2ff3ff; }
+
+/* real photograph instead of the drawn skyline */
+.tk { background: #05040f; }
+.tk-photo { position: absolute; inset: -3%; background: url(/art/tokyo/street.jpg) center / cover; filter: brightness(0.62) saturate(1.15); animation: tk-drift 50s ease-in-out infinite alternate; }
+@keyframes tk-drift { to { transform: scale(1.06) translateX(-1.5%); } }
+.tk-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5, 4, 15, 0.35), transparent 30%, transparent 55%, rgba(5, 4, 15, 0.85) 72%); }
+.tk-road { opacity: 0.85; }
+.tk-sign { backdrop-filter: blur(6px); }
