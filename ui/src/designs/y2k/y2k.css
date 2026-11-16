@@ -158,3 +158,4 @@
 .ae-rim { left: 0; top: 0; transform-origin: 0 0; }
 .ae-rim img { transform-origin: 50% 50%; }
 .ae-rim { transition: opacity 350ms ease; }
+.ae-hubs { transition: opacity 350ms ease; }

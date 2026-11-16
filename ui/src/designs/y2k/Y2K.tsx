@@ -86,23 +86,26 @@ function Y2K({ ctx }: { ctx: DesignContext }) {
 }
 
 /**
- * The glossy car, unchanged, with only the rims turning — in true perspective.
- * tools/rim_fit.py fits each rim's ellipse and hub in the picture, builds the
- * homography H from a head-on disc to that rim, and un-projects the rim into a
- * frontal disc image. Here each disc spins flat and is re-projected through H
- * (CSS matrix3d), so it lands exactly on the original pixels at every angle.
- * Spin rate follows speed, gently, and coasts to a stop.
+ * The glossy car, unchanged, with only the spokes turning — in true perspective.
+ * tools/rim_fit.py fits each rim's ellipse and hub, builds the homography H from
+ * a head-on disc to that rim, and un-projects the rim to a frontal disc that keeps
+ * only the spokes and centre cap (five-fold-symmetric bright pixels). The barrel,
+ * lip, rotor and calliper don't turn: while moving they come from hubs.png, the
+ * same picture with the spokes removed (AI edit, wheel interiors only). Each disc
+ * spins flat and is re-projected through H (CSS matrix3d). Parked, the untouched
+ * photo shows; spin rate follows speed and settles on a five-spoke multiple.
  */
 const CAR_W = 1400, CAR_H = 538;
 const RIMS = [
-  { src: "/art/y2k/front.png", size: 204, h: "matrix3d(0.02551838, 0.8277785, 0, -0.0002592865, -1.000844, 0.1423875, 0, -0.0001683049, 0, 0, 1, 0, 834.8268, 284.4885, 0, 1)" },
-  { src: "/art/y2k/rear.png", size: 158, h: "matrix3d(0.09049304, 1.109421, 0, 0.0001323138, -0.5283466, 0.2884114, 0, 0.0007166189, 0, 0, 1, 0, 166.1952, 255.5605, 0, 1)" },
+  { src: "/art/y2k/front.png", size: 204, h: "matrix3d(0.2467546, 0.9696934, 0, 1.929843e-05, -1.015908, 0.1555687, 0, -0.0001516555, 0, 0, 1, 0, 837.4443, 283.7018, 0, 1)" },
+  { src: "/art/y2k/rear.png", size: 158, h: "matrix3d(0.06756157, 0.8791339, 0, 6.076005e-05, -0.7187701, -0.5489015, 0, -0.001706218, 0, 0, 1, 0, 167.0116, 271.443, 0, 1)" },
 ];
 
 function AeroCar({ speedMph, className }: { speedMph: number; className?: string }) {
   const box = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const rims = useRef<(HTMLImageElement | null)[]>([]);
+  const plate = useRef<HTMLImageElement>(null);
   const speed = useRef(speedMph);
   speed.current = speedMph;
   useEffect(() => {
@@ -114,6 +117,7 @@ function AeroCar({ speedMph, className }: { speedMph: number; className?: string
     const show = (on: boolean) => {
       if (on === shown) return; shown = on;
       for (const r of rims.current) if (r?.parentElement) r.parentElement.style.opacity = on ? "1" : "0";
+      if (plate.current) plate.current.style.opacity = on ? "1" : "0";
     };
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
@@ -141,6 +145,7 @@ function AeroCar({ speedMph, className }: { speedMph: number; className?: string
     <div ref={box} className={`ae-carbox ${className ?? ""}`} style={{ aspectRatio: `${CAR_W} / ${CAR_H}` }}>
       <div ref={stage} className="ae-car-stage">
         <img className="ae-car-img" src="/art/y2k/car.png" alt="" />
+        <img ref={plate} className="ae-car-img ae-hubs" src="/art/y2k/hubs.png" alt="" style={{ opacity: 0 }} />
         {RIMS.map((w, i) => (
           <div key={w.src} className="ae-rim" style={{ width: w.size, height: w.size, transform: w.h, opacity: 0 }}>
             <img ref={(el) => { rims.current[i] = el; }} src={w.src} alt="" />
