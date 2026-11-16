@@ -86,47 +86,67 @@ function Y2K({ ctx }: { ctx: DesignContext }) {
 }
 
 /**
- * The glossy car, unchanged, with only the rims turning. Each rim is a disc
- * cut from the same picture and stretched to a circle (tools: see commit);
- * it is rotated, then squashed back into the rim's ellipse, so it lines up
- * exactly with the still image underneath. Rate follows speed, gently.
+ * The glossy car, unchanged, with only the rims turning — in true perspective.
+ * tools/rim_fit.py fits each rim's ellipse and hub in the picture, builds the
+ * homography H from a head-on disc to that rim, and un-projects the rim into a
+ * frontal disc image. Here each disc spins flat and is re-projected through H
+ * (CSS matrix3d), so it lands exactly on the original pixels at every angle.
+ * Spin rate follows speed, gently, and coasts to a stop.
  */
 const CAR_W = 1400, CAR_H = 538;
 const RIMS = [
-  { src: "/art/y2k/wheel-f.png", cx: 768, cy: 403, rx: 97, ry: 102 },
-  { src: "/art/y2k/wheel-r.png", cx: 127, cy: 342, rx: 46, ry: 80 },
+  { src: "/art/y2k/front.png", size: 204, h: "matrix3d(0.02551838, 0.8277785, 0, -0.0002592865, -1.000844, 0.1423875, 0, -0.0001683049, 0, 0, 1, 0, 834.8268, 284.4885, 0, 1)" },
+  { src: "/art/y2k/rear.png", size: 158, h: "matrix3d(0.09049304, 1.109421, 0, 0.0001323138, -0.5283466, 0.2884114, 0, 0.0007166189, 0, 0, 1, 0, 166.1952, 255.5605, 0, 1)" },
 ];
 
 function AeroCar({ speedMph, className }: { speedMph: number; className?: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
   const rims = useRef<(HTMLImageElement | null)[]>([]);
   const speed = useRef(speedMph);
   speed.current = speedMph;
   useEffect(() => {
-    let raf = 0, last = performance.now(), angle = 0, rate = 0;
+    // the art is laid out at its natural 1400x538 and scaled to the box
+    const fit = () => { if (box.current && stage.current) stage.current.style.transform = `scale(${box.current.clientWidth / CAR_W})`; };
+    fit();
+    const ro = new ResizeObserver(fit); if (box.current) ro.observe(box.current);
+    let raf = 0, last = performance.now(), angle = 0, rate = 0, shown = false;
+    const show = (on: boolean) => {
+      if (on === shown) return; shown = on;
+      for (const r of rims.current) if (r?.parentElement) r.parentElement.style.opacity = on ? "1" : "0";
+    };
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
       const dt = Math.min(0.1, (now - last) / 1000); last = now;
       // calm, readable spin: ~0.25 rev/s at walking pace up to ~1.4 rev/s on the highway
       const target = speed.current < 0.5 ? 0 : 90 + Math.min(speed.current, 80) * 5.5;   // deg/s
-      rate += (target - rate) * Math.min(1, dt * 1.5);                                  // ease (coasts to a stop)
-      angle = (angle + rate * dt) % 360;
+      if (target > 0) {
+        show(true);
+        rate += (target - rate) * Math.min(1, dt * 1.5);
+        angle = (angle + rate * dt) % 360;
+      } else if (shown) {
+        // stopping: coast, then settle on the next multiple of 72° (five spokes), where
+        // the disc matches the photo exactly, and hand back to the untouched picture
+        rate = Math.max(28, rate - rate * dt * 1.5);
+        const dest = Math.ceil(angle / 72 - 1e-6) * 72;
+        angle = Math.min(dest, angle + rate * dt);
+        if (dest - angle < 0.05) { angle = dest % 360; rate = 0; show(false); }
+      }
       for (const r of rims.current) if (r) r.style.transform = `rotate(${angle}deg)`;
     };
     raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(raf);
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
   }, []);
   return (
-    <div className={`ae-carbox ${className ?? ""}`} style={{ aspectRatio: `${CAR_W} / ${CAR_H}` }}>
-      <img className="ae-car-img" src="/art/y2k/car.png" alt="" />
-      {RIMS.map((w, i) => (
-        <div key={w.src} className="ae-rim" style={{
-          left: `${((w.cx - w.ry) / CAR_W) * 100}%`, top: `${((w.cy - w.ry) / CAR_H) * 100}%`,
-          width: `${((2 * w.ry) / CAR_W) * 100}%`, height: `${((2 * w.ry) / CAR_H) * 100}%`,
-          transform: `scaleX(${w.rx / w.ry})`,
-        }}>
-          <img ref={(el) => { rims.current[i] = el; }} src={w.src} alt="" />
-        </div>
-      ))}
+    <div ref={box} className={`ae-carbox ${className ?? ""}`} style={{ aspectRatio: `${CAR_W} / ${CAR_H}` }}>
+      <div ref={stage} className="ae-car-stage">
+        <img className="ae-car-img" src="/art/y2k/car.png" alt="" />
+        {RIMS.map((w, i) => (
+          <div key={w.src} className="ae-rim" style={{ width: w.size, height: w.size, transform: w.h, opacity: 0 }}>
+            <img ref={(el) => { rims.current[i] = el; }} src={w.src} alt="" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

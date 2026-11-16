@@ -153,3 +153,8 @@
 .ae-vol { margin-top: 14px; flex-wrap: nowrap; }
 .ae-pill-open { width: auto; align-self: flex-start; height: 44px; margin-top: 8px; padding: 0 16px; font-size: 16px; }
 .ae-gadget[data-grow="true"] { min-height: 190px; }
+.ae-car-stage { position: absolute; left: 0; top: 0; width: 1400px; height: 538px; transform-origin: 0 0; }
+.ae-car-stage .ae-car-img { width: 1400px; height: 538px; }
+.ae-rim { left: 0; top: 0; transform-origin: 0 0; }
+.ae-rim img { transform-origin: 50% 50%; }
+.ae-rim { transition: opacity 350ms ease; }
