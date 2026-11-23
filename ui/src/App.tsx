@@ -61,6 +61,8 @@ export function App() {
     <DesignSettings current={designId} onPick={pickDesign}
                     androidPreload={daemon.state.settings.androidPreload}
                     onAndroidPreload={(v) => daemon.setSetting("androidPreload", v)}
+                    androidSplit={daemon.state.settings.androidSplit ?? true}
+                    onAndroidSplit={(v) => daemon.setSetting("androidSplit", v)}
                     reverse={reverse} onReverse={setReverse} onClose={() => setSettingsOpen(false)} />
   );
 
@@ -127,6 +129,8 @@ function ClassicShell({ daemon, openDesigns, designSheet }: { daemon: ReturnType
             <Appearance appearance={appearance} onChange={updateAppearance} onClose={() => setAppearanceOpen(false)}
                         androidPreload={state.settings.androidPreload}
                         onAndroidPreload={(v) => setSetting("androidPreload", v)}
+                        androidSplit={state.settings.androidSplit ?? true}
+                        onAndroidSplit={(v) => setSetting("androidSplit", v)}
                         onDesigns={() => { setAppearanceOpen(false); openDesigns(); }} />
           )}
           {state.androidBooting && (

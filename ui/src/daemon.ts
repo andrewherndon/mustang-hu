@@ -36,7 +36,9 @@ export interface DaemonState {
   /** Android app in front and recently used Android apps (newest first). */
   androidFront: string | null;
   androidRecent: string[];
-  settings: { androidPreload: boolean };
+  settings: { androidPreload: boolean; androidSplit: boolean };
+  /** Android Auto-style split inside Android: Maps on the left, `right` app beside it. */
+  split: { active: boolean; left: string; right: string | null; big: "left" | "right" };
   screen: { width: number; height: number };
 }
 
@@ -74,7 +76,8 @@ export const DEFAULT_STATE: DaemonState = {
   androidBooting: false,
   androidFront: null,
   androidRecent: [],
-  settings: { androidPreload: false },
+  settings: { androidPreload: false, androidSplit: true },
+  split: { active: false, left: "com.google.android.apps.maps", right: null, big: "right" },
   screen: { width: 2880, height: 1920 },
 };
 
@@ -200,7 +203,7 @@ export function useDaemon() {
     else ws.current?.send(JSON.stringify({ type: "setSlot", y }));
   }, []);
 
-  const setSetting = useCallback((key: "androidPreload", value: boolean) => {
+  const setSetting = useCallback((key: "androidPreload" | "androidSplit", value: boolean) => {
     if (MOCK) setState((s) => ({ ...s, settings: { ...s.settings, [key]: value } }));
     else ws.current?.send(JSON.stringify({ type: "setSetting", key, value }));
   }, []);

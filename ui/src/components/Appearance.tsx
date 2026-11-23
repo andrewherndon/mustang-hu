@@ -7,11 +7,13 @@ interface Props {
   onClose: () => void;
   androidPreload: boolean;
   onAndroidPreload: (v: boolean) => void;
+  androidSplit: boolean;
+  onAndroidSplit: (v: boolean) => void;
   onDesigns: () => void;
 }
 
 /** Settings sheet over the home screen: appearance and Android. */
-export function Appearance({ appearance, onChange, onClose, androidPreload, onAndroidPreload, onDesigns }: Props) {
+export function Appearance({ appearance, onChange, onClose, androidPreload, onAndroidPreload, androidSplit, onAndroidSplit, onDesigns }: Props) {
   return (
     <div className="sheet-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="sheet">
@@ -51,6 +53,13 @@ export function Appearance({ appearance, onChange, onClose, androidPreload, onAn
           <span>
             Start Android at boot
             <small className="sheet-hint">Android apps open instantly; uses ~1.5 GB of memory in the background</small>
+          </span>
+          <span className="toggle"><span /></span>
+        </button>
+        <button className="sheet-toggle" data-on={androidSplit} onClick={() => onAndroidSplit(!androidSplit)}>
+          <span>
+            Split view: Maps + media
+            <small className="sheet-hint">Like Android Auto: Maps on the left third; touch a side to make it big</small>
           </span>
           <span className="toggle"><span /></span>
         </button>

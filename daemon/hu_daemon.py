@@ -59,6 +59,7 @@ Rectangles are in physical screen pixels (Sway runs at scale 1).
 """
 import asyncio
 import json
+import re
 import logging
 import os
 import time
@@ -90,7 +91,20 @@ ANDROID_POLL_SECONDS = 2.0
 
 # Head-unit settings changed from the shell's settings sheet (persisted here).
 SETTINGS_FILE = os.path.expanduser("~/.config/headunit/settings.json")
-DEFAULT_SETTINGS = {"androidPreload": False}   # boot Android in the background at startup
+DEFAULT_SETTINGS = {
+    "androidPreload": False,   # boot Android in the background at startup
+    "androidSplit": True,      # Android Auto-style split: Maps one third, media/other app two thirds
+}
+
+# Split view inside Android (its display is a fixed 2880x1620). Built with
+# Android 13's own split screen (WMShell `splitscreen moveToSideStage`); the
+# divider only ever rests at one third or two thirds, the daemon puts it back.
+SPLIT_LEFT_PKG = "com.google.android.apps.maps"           # always the left pane
+SPLIT_DEFAULT_RIGHT = ("com.spotify.music", "com.google.android.apps.youtube.music")
+ANDROID_W, ANDROID_H = 2880, 1620
+SPLIT_SMALL = ANDROID_W // 3                              # 960: the narrow pane
+SPLIT_TOLERANCE = 40                                      # px the divider may sit off its stop
+WMSHELL = ("dumpsys", "activity", "service", "SystemUIService", "WMShell")
 
 KEYCODES = {"BackSpace": 14, "Tab": 15, "Return": 28, "Left": 105, "Right": 106}   # linux/input-event-codes.h
 AUTO_OPEN_AA = True   # switch to Android Auto when a phone connects
@@ -173,6 +187,9 @@ class Daemon:
         except (OSError, ValueError):
             self.settings = dict(DEFAULT_SETTINGS)
         self.media = None                 # what Android is playing, if anything
+        # Split view: which app is on the right and which pane is the big one.
+        self.split = {"active": False, "left": SPLIT_LEFT_PKG, "right": None, "big": "right"}
+        self.split_lock = asyncio.Lock()  # one split change at a time (focus events are ignored meanwhile)
 
     # ---------- state ----------
     def state(self):
@@ -193,6 +210,7 @@ class Daemon:
             "androidRecent": self.android_recent,
             "settings": self.settings,
             "media": self.media,
+            "split": self.split,
             "screen": SCREEN,
         }
 
@@ -533,6 +551,7 @@ class Daemon:
                 if "android" in self.windows:
                     media = self.parse_media(await self.android_shell("dumpsys", "media_session"))
                     front_changed = self.note_android_front(await self.resumed_android_package())
+                    await self.enforce_split()
                 elif self.android_recent or self.android_front:
                     self.android_recent, self.android_front, front_changed = [], None, True
                 if apps != self.android_apps or media != self.media or front_changed:
@@ -568,6 +587,141 @@ class Daemon:
         else:
             await self.cmd("waydroid", "app", "launch", pkg)    # fallback
 
+    # ---------- split view (Android Auto-style tiling inside Android) ----------
+    def split_enabled(self):
+        return self.settings.get("androidSplit") and any(a["pkg"] == SPLIT_LEFT_PKG for a in self.android_apps)
+
+    def split_right_default(self):
+        """The app for the right pane when none was chosen: last right app, a music app, else a recent one."""
+        installed = {a["pkg"] for a in self.android_apps}
+        if self.split["right"] in installed:
+            return self.split["right"]
+        for pkg in SPLIT_DEFAULT_RIGHT + tuple(self.android_recent):
+            if pkg in installed and pkg != SPLIT_LEFT_PKG:
+                return pkg
+        return None
+
+    async def android_tasks(self):
+        """App tasks in Android: pkg -> {"id", "visible", "mode", "bounds": (l, t, r, b)}."""
+        out = await self.android_shell("dumpsys", "activity", "activities", timeout=5)
+        tasks = {}
+        for m in re.finditer(r"\* Task\{\w+ #(\d+) [^\n]*?A=\d+:([\w.]+)[^\n]*?visible=(\w+)[^\n]*?mode=([\w-]+)", out):
+            if m.group(2) in tasks:
+                continue
+            b = re.search(r"mBounds=Rect\((\d+), (\d+) - (\d+), (\d+)\)", out[m.end():m.end() + 4000])
+            tasks[m.group(2)] = {"id": int(m.group(1)), "visible": m.group(3) == "true", "mode": m.group(4),
+                                 "bounds": tuple(map(int, b.groups())) if b else None}
+        return tasks
+
+    def split_divider(self, tasks):
+        """x of the divider when Maps (left) and the right app are side by side, else None."""
+        l, r = tasks.get(self.split["left"]), tasks.get(self.split["right"])
+        if not (l and r and l["visible"] and r["visible"] and l["bounds"] and r["bounds"]
+                and l["mode"] == r["mode"] == "multi-window"):
+            return None
+        if l["bounds"][0] != 0 or r["bounds"][2] != ANDROID_W:
+            return None
+        return (l["bounds"][2] + r["bounds"][0]) // 2
+
+    async def wait_task(self, pkg, tries=12):
+        for _ in range(tries):
+            if pkg in await self.android_tasks():
+                return True
+            await asyncio.sleep(0.25)
+        return False
+
+    async def snap_divider(self, x):
+        """Drag the split divider to its stop for the big pane (one third or two thirds)."""
+        target = SPLIT_SMALL if self.split["big"] == "right" else ANDROID_W - SPLIT_SMALL
+        if abs(x - target) > SPLIT_TOLERANCE:
+            await self.android_shell("input", "swipe", str(x), str(ANDROID_H // 2), str(target), str(ANDROID_H // 2), "450")
+            await asyncio.sleep(0.6)
+
+    async def show_split(self, right, big):
+        """Maps on the left, `right` on the right, `big` pane two thirds wide. Builds the
+        split if it isn't there (right app first, Maps in front, right into the side stage)."""
+        if not right:
+            return False
+        async with self.split_lock:
+            self.split = {**self.split, "right": right, "big": big}
+            x = None
+            for _ in range(2):
+                tasks = await self.android_tasks()
+                x = self.split_divider(tasks)
+                if x is not None:
+                    break
+                await self.start_android_app(right)
+                await self.wait_task(right)
+                await self.start_android_app(SPLIT_LEFT_PKG)
+                await self.wait_task(SPLIT_LEFT_PKG)
+                await asyncio.sleep(0.5)
+                tasks = await self.android_tasks()
+                if right in tasks:
+                    await self.android_shell(*WMSHELL, "splitscreen", "moveToSideStage", str(tasks[right]["id"]), "1")
+                await asyncio.sleep(1.2)
+            if x is None:
+                log.warning("split view: could not put %s next to Maps", right)
+                self.split["active"] = False
+            else:
+                await self.snap_divider(x)
+                # focus the big pane, so the first touch on the narrow one counts as a switch
+                await self.start_android_app(self.split[big])
+                await asyncio.sleep(0.3)
+                self.split["active"] = True
+                log.info("split view: maps | %s (%s big)", right, big)
+        await self.broadcast()
+        return self.split["active"]
+
+    async def exit_split(self):
+        async with self.split_lock:
+            tasks = await self.android_tasks()
+            for pkg in (self.split["right"], self.split["left"]):
+                if pkg in tasks:
+                    await self.android_shell(*WMSHELL, "splitscreen", "removeFromSideStage", str(tasks[pkg]["id"]))
+            self.split["active"] = False
+        await self.broadcast()
+
+    async def on_android_focus(self, pkg):
+        """Touching the narrow pane makes it the big one, like Android Auto."""
+        if (not self.split_enabled() or not self.split["active"] or self.split_lock.locked()
+                or self.layout != "android" or self.android_booting):
+            return
+        side = "left" if pkg == self.split["left"] else "right" if pkg == self.split["right"] else None
+        if side and side != self.split["big"]:
+            await self.show_split(self.split["right"], side)
+
+    async def watch_android_focus(self):
+        """Follow which Android app the user last touched (event log, no polling)."""
+        while True:
+            if "android" not in self.windows:
+                await asyncio.sleep(2)
+                continue
+            proc = await asyncio.create_subprocess_exec(
+                "sudo", "-n", "waydroid", "shell", "--", "logcat", "-b", "events", "-T", "1",
+                "-s", "wm_set_resumed_activity", "wm_on_top_resumed_gained_called",
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
+            async for raw in proc.stdout:
+                m = re.search(r"(?:wm_set_resumed_activity|wm_on_top_resumed_gained_called): \[[^,]*,([\w.]+)/",
+                              raw.decode(errors="replace"))
+                if m:
+                    asyncio.create_task(self.on_android_focus(m.group(1)))
+            await proc.wait()
+            await asyncio.sleep(2)
+
+    async def enforce_split(self):
+        """Keep the divider rigid: put it back at its stop, rebuild the split if it was dragged away."""
+        if (not self.split_enabled() or not self.split["active"] or self.split_lock.locked()
+                or self.layout != "android" or self.android_booting):
+            return
+        x = self.split_divider(await self.android_tasks())
+        if x is None:
+            await self.show_split(self.split["right"], self.split["big"])
+        else:
+            target = SPLIT_SMALL if self.split["big"] == "right" else ANDROID_W - SPLIT_SMALL
+            if abs(x - target) > SPLIT_TOLERANCE:
+                async with self.split_lock:
+                    await self.snap_divider(x)
+
     async def android_ready(self):
         return (await self.android_shell("getprop", "sys.boot_completed", timeout=3)).strip() == "1"
 
@@ -599,6 +753,8 @@ class Daemon:
     async def open_android(self):
         """Show Android itself (the "Android" tile)."""
         if await self.ensure_android():
+            if self.split_enabled():
+                await self.show_split(self.split_right_default(), self.split["big"])
             self.layout = "home"                        # force a fresh placement
             await self.set_layout("android")
         else:
@@ -617,6 +773,19 @@ class Daemon:
             return
         if mine != self.launch_seq:
             return                                         # a newer tap took over
+        if self.split_enabled():
+            if pkg == SPLIT_LEFT_PKG:
+                right, big = self.split_right_default(), "left"
+            else:
+                right, big = pkg, "right"
+            if right and await self.show_split(right, big):
+                self.note_android_front(pkg)
+                if mine == self.launch_seq:
+                    if self.layout == "android":
+                        asyncio.create_task(self.apply_layout())
+                    else:
+                        await self.set_layout("android")
+                return
         await self.start_android_app(pkg)
         for _ in range(12):                                # up to ~3 s
             if mine != self.launch_seq:
@@ -652,6 +821,11 @@ class Daemon:
         await self.broadcast()
         if key == "androidPreload" and value:
             asyncio.create_task(self.preload_android())
+        if key == "androidSplit":
+            if value and "android" in self.windows:
+                asyncio.create_task(self.show_split(self.split_right_default(), self.split["big"]))
+            elif not value and self.split["active"]:
+                asyncio.create_task(self.exit_split())
 
     async def media_control(self, action):
         if action in ("play-pause", "next", "previous") and "android" in self.windows:
@@ -706,6 +880,7 @@ class Daemon:
         self.android_apps = self.read_android_apps()
         asyncio.create_task(self.poll_android())
         asyncio.create_task(self.preload_android())
+        asyncio.create_task(self.watch_android_focus())
         async with websockets.serve(self.handle_client, HOST, PORT):
             log.info("listening on ws://%s:%d", HOST, PORT)
             await self.watch_sway()

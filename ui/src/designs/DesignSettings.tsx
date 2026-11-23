@@ -5,13 +5,15 @@ interface Props {
   onPick: (id: string) => void;
   androidPreload: boolean;
   onAndroidPreload: (v: boolean) => void;
+  androidSplit: boolean;
+  onAndroidSplit: (v: boolean) => void;
   reverse: boolean;
   onReverse: (v: boolean) => void;
   onClose: () => void;
 }
 
 /** Settings shared by every design: the design picker and system options. */
-export function DesignSettings({ current, onPick, androidPreload, onAndroidPreload, reverse, onReverse, onClose }: Props) {
+export function DesignSettings({ current, onPick, androidPreload, onAndroidPreload, androidSplit, onAndroidSplit, reverse, onReverse, onClose }: Props) {
   const all = [{ id: "classic", name: "Classic", tagline: "The original: dithered gradient, glass icons, Mustang clip", swatch: ["#0b3d2e", "#2ec27e"] as [string, string] }, ...DESIGNS];
   return (
     <div className="dsheet-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
@@ -33,6 +35,9 @@ export function DesignSettings({ current, onPick, androidPreload, onAndroidPrelo
         <div className="dsheet-row">
           <button className="dsheet-btn" data-on={androidPreload} onClick={() => onAndroidPreload(!androidPreload)}>
             Start Android at boot: {androidPreload ? "on" : "off"}
+          </button>
+          <button className="dsheet-btn" data-on={androidSplit} onClick={() => onAndroidSplit(!androidSplit)}>
+            Split view (Maps + media): {androidSplit ? "on" : "off"}
           </button>
         </div>
         <h3>Test</h3>
