@@ -29,6 +29,11 @@ done
 sudo systemctl daemon-reload
 sudo systemctl enable --now ydotoold.service >/dev/null 2>&1
 
+# ---- touch: iptsd contact tuning (keeps fingers tracked mid-gesture) ----
+sudo install -D -m644 $D/system/touch/90-headunit.conf /etc/iptsd.d/90-headunit.conf
+# ---- OpenAuto config (read from the home directory) ----
+install -m644 $D/system/openauto/openauto.ini $D/system/openauto/openauto-logs.ini ~/
+
 # ---- boot: no menu, quiet kernel, greetd starts the Sway session ----
 sudo install -m644 $D/system/boot/loader.conf /boot/loader/loader.conf
 install -m644 $D/system/boot/bash_profile ~/.bash_profile

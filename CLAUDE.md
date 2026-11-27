@@ -11,13 +11,18 @@ Sway (compositor, scale 1, 2880x1920 panel, no bar/borders)
 ├── OpenAuto video window            floating, placed by hu-daemon at AA_RECT (top 2880x1620, 16:9)
 │     └── runs in a rootful Debian distrobox "aa-root"; fork with our patches:
 │         github.com/andrewherndon/openauto  branch low-latency-video
+├── Waydroid (Android 13 VM)        one window at the same slot; Maps | media split inside it
 └── hu-daemon (Python, ws://localhost:8765)
-      tracks Android Auto, places/hides its window via swaymsg, talks to the shell
+      tracks AA/Android windows, places/hides them via swaymsg, talks to the shell
 ```
+
+**Read `docs/NOTES.md`** for hard-won, non-obvious findings. When something costs real time to figure out,
+add a line or two there (concise, no narrative).
 
 - **ui/** — Vite + React + TypeScript. The shell: home screen, dock, everything around AA.
 - **daemon/hu_daemon.py** — WebSocket bridge to Sway/hardware. Protocol documented at the top of the file.
-- **system/** — scripts installed to `/usr/local/bin` on the Surface, Sway config, `deploy.sh`.
+- **system/** — scripts installed to `/usr/local/bin` on the Surface, Sway/touch/OpenAuto config, `deploy.sh`.
+- **ui/src/designs/** — alternative shell designs (picker in Settings); the original is "Classic" in `App.tsx`.
 
 ## UI constraints (important for design work)
 
